@@ -1,0 +1,14 @@
+{
+    "craigslist": {
+    },
+    "google":{
+    },
+    "text_auth":{
+        "number":"469-713-2323",
+        "twilio":{
+            "endpoint":"https://api.twilio.com/2010-04-01/Accounts/AC0403c0b1aec7eb5bc8b70384f7a1bb9d/Messages.json",
+            "user":"AC0403c0b1aec7eb5bc8b70384f7a1bb9d",
+            "pw":"32e8b69388071c3b75fb094e55e813e1"
+        }
+    }
+}
