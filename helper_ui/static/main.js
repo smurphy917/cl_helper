@@ -39,10 +39,11 @@ function CLHelperViewModel() {
 
     this.addUser = function(){
         var self = this;
+        googleAccount = self.user().endsWith("@gmail.com") ? self.user() : self.selectedGoogleAccount()[0];
         payload = {
             'user': self.user(),
             'pw': self.passwd(),
-            'google_account': self.selectedGoogleAccount()[0]
+            'google_account': googleAccount
         };
         $.ajax({
             url: '/add_account',
@@ -89,6 +90,7 @@ function CLHelperViewModel() {
             'accounts':self.selectedUsers(),
             'period': self.period()
         };
+        /*
         confirmed = true;
         if(self.userSelect()==='New User' && !self.user().endsWith("@gmail.com")){
             confirmed = confirm("Please note that using a non-gmail email address requires that you link your email account to the CL Helper gmail account. For assistance with this, please provide your email address to Sam via email (smurphy917@gmail.com). Please confirm this step has been completed prior to running CL Helper with this account.");
@@ -96,6 +98,7 @@ function CLHelperViewModel() {
         if(!confirmed){
             return;
         }
+        */
         $.ajax({
             url: '/start',
             method: 'POST',

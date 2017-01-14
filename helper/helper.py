@@ -311,8 +311,14 @@ class Helper:
         return code
 
     def set_login(self,login):
-        self.config['craigslist']['credentials']['user'] = login[0]
-        self.config['craigslist']['credentials']['pw'] = login[1]
+        self.config.update({
+            'craigslist': {
+                'credentials': {
+                    'user': login[0],
+                    'pw': login[1]
+                }
+            }
+        })
 
     def get_login(self):
         return (self.config['craigslist']['credentials']['user'], self.config['craigslist']['credentials']['pw'])
@@ -354,6 +360,8 @@ class Helper:
                 data = json.load(file)
             except json.decoder.JSONDecodeError:
                 data = {}
+        if 'posts' not in data:
+            data['posts'] = []
         if not include_time:
             return data['posts']
         else:
