@@ -66,12 +66,15 @@ def get_stored_credentials(user_id):
     NotImplemented: This function has not been implemented.
   """
   log.debug("retrieving user credentials for: " + user_id)
-  with open(os.path.join(os.path.dirname(__file__),'data/user_data.json'), 'r') as file:
-      user_data = json.load(file)
-      if user_id in user_data:
-        return Credentials.new_from_json(json.dumps(user_data[user_id]['stored_credentials']))
-      else:
-        return None
+  try:
+    with open(os.path.join(os.path.dirname(__file__),'data/user_data.json'), 'r') as file:
+        user_data = json.load(file)
+        if user_id in user_data:
+          return Credentials.new_from_json(json.dumps(user_data[user_id]['stored_credentials']))
+        else:
+          return None
+  except FileNotFoundError:
+    return None
   # TODO: Implement this function to work with your database.
   #       To instantiate an OAuth2Credentials instance from a Json
   #       representation, use the oauth2client.client.Credentials.new_from_json
@@ -94,12 +97,15 @@ def store_credentials(user_id, credentials):
   user_email = credentials.id_token['email']
   log.debug("storing user credentials for: " + user_email)
   user_data = {}
-  with open(os.path.join(os.path.dirname(__file__),'data/user_data.json'),'r') as file:
-      user_data = json.load(file)
+  try:
+    with open(os.path.join(os.path.dirname(__file__),'data/user_data.json'),'r') as file:
+        user_data = json.load(file)
+  except FileNotFoundError:
+    pass
   if user_id not in user_data:
     user_data[user_id] = {'stored_credentials': {}}
   user_data[user_id]['stored_credentials'] = json.loads(credentials.to_json())
-  with open(os.path.join(os.path.dirname(__file__),'data/user_data.json'),'w') as file:
+  with open(os.path.join(os.path.dirname(__file__),'data/user_data.json'),'w+') as file:
     json.dump(user_data,file)
   '''
   # TODO: Implement this function to work with your database.

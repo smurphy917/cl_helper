@@ -13,8 +13,8 @@ repoFilePath = "repository.json"
 @app.route("/sms",methods=['GET','POST'])
 def receive():
     log.info("received JSON: " + str(request.get_json()))
-    log.info("received data: " + str(request.data))
-    log.info("received value: " + json.dumps(request.values))
+    #log.info("received data: " + str(request.data))
+    #log.info("received value: " + json.dumps(request.values))
     newMessage = {'time':'{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now()),'data':request.get_json()}
     repository = {}
     with open(repoFilePath,"r+") as repoFile:

@@ -1,5 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.select import Select
 import schedule
 import time
 import requests
@@ -10,6 +11,7 @@ import dateutil.relativedelta
 import json
 import os
 import sys
+from sys import platform
 import pytz
 from . import google_auth
 import base64
@@ -21,12 +23,18 @@ if hasattr(sys,'frozen'):
     CURR_DIR = sys.prefix
 else:
     CURR_DIR = os.path.dirname(os.path.realpath(__file__))
+#overriding for testing
+CURR_DIR = os.path.dirname(__file__)
 logDir = os.path.join(os.getcwd(),"log")
 if not os.path.exists(logDir):
     os.makedirs(logDir)
 logging.config.dictConfig(json.load(open(os.path.join(CURR_DIR,'config/log.json'))))
 log = logging.getLogger("cl_helper")
-CHROMEDRIVER_PATH = '/Users/smurphy917/Downloads/chromedriver'
+CHROMEDRIVER_PATH = ""
+if platform == 'darwin':
+    CHROMEDRIVER_PATH = os.path.join(os.getcwd(),'drivers','macOS','chromedriver')
+elif platform == 'win32':
+    CHROMEDRIVER_PATH = os.path.join(os.getcwd(),'drivers','win','chromedriver.exe')
 CL_BASE = "http://accounts.craigslist.org"
 
 class Helper:
@@ -42,6 +50,14 @@ class Helper:
         self.google_email = ""
         self.paused = False
         self.started = False
+
+        #try:
+        #    with open(self.data_path) as file:
+        #        pass
+        #except FileNotFoundError:
+        #    with open(self.data_path,'w+') as file:
+        #        pass
+
         posts = self.get_posts()
         for post in posts:
             if post['status']=='pending':
@@ -66,7 +82,7 @@ class Helper:
                 self.save_current_user()
             return "complete"
         try:
-            creds = google_auth.get_credentials(self.config['google']['access_code'],'auth')
+            creds = google_auth.get_credentials('bogus','auth')
         except (google_auth.NoRefreshTokenException, google_auth.CodeExchangeException) as e:
             url = ''
             if hasattr(e,'authorization_url'):
@@ -145,7 +161,9 @@ class Helper:
         if len(self.pending_posts):
             for post in self.pending_posts:
                 if post['type']=='email':
-                    self.verify_via_email(driver,post['email_address'],post['last_update'])
+                    if self.verify_via_email(driver,post['email_address'],post['last_update']):
+                        self.upsert_post(post.update({'status': 'reposted', 'last_update': datetime.datetime.now().timestamp()}))
+                    #else just leaving it in pending_posts to be picked up next time
         now = datetime.datetime.now().replace(tzinfo=pytz.utc)
         try:
             done = False
@@ -216,7 +234,7 @@ class Helper:
                             })
                         else:
                             #deleting and re-posting
-                            elapsed_time = datetime.datetime.now() - newest_date
+                            elapsed_time = datetime.datetime.now().replace(tzinfo=pytz.utc) - newest_date
                             if elapsed_time.days < 7:
                                 #done - no more to update since last one is up-to-date
                                 done = True
@@ -229,11 +247,16 @@ class Helper:
                             #post_href = "http://dallas.craigslist.org/sdf/apa/%s.html" % post_id
                             print("href: " + post_href + ", id: " + post_id)
                             driver.find_element_by_css_selector("div.managebutton form input[name='go']").click()
+                            #change available on date
+                            Select(driver.find_element_by_name("moveinMonth")).select_by_value(now.month)
+                            driver.find_element_by_name("moveinDay").send_keys(now.day)
+                            driver.find_element_by_name("moveinYear").send_keys(now.year)
                             continues = driver.find_elements_by_css_selector("button[value='Continue']")
                             if not len(continues):
                                 link_ps = driver.find_elements_by_xpath("//p[contains(.,'Your posting can be seen at')]/a")
                                 if len(link_ps):
                                     post_href = link_ps[0].get_attribute("href")
+                                else:
                                     self.upsert_post({
                                         'id': post_id,
                                         'account': self.get_current_user(),
@@ -278,7 +301,7 @@ class Helper:
                                 elif text_auth:
                                     code = self.get_text_auth()
                                 else:
-                                    post_href = driver.find_element_by_xpath("//li[contains(.,'View your post at')]/a").get_attribute("href")
+                                    #post_href = driver.find_element_by_xpath("//li[contains(.,'View your post at')]/a").get_attribute("href")
                                     self.upsert_post({
                                         'id': post_id,
                                         'account': self.get_current_user(),
@@ -301,14 +324,23 @@ class Helper:
         driver.close()
 
     def get_text_auth(self):
-        twilio_endpoint = self.config['text_auth']['twilio']['endpoint']
-        phone_number = self.config['text_auth']['phone_number']
-        twilio_auth = (self.config['text_auth']['twilio']['user'],self.config['text_auth']['twilio']['pw'])
-        messages = requests.get(twilio_endpoint,params={'DateSent':'{:%y-%m-%d}'.format(datetime.datetime.now()),'to':phone_number},auth=twilio_auth).json
-        log.info("auth code message: " + messages[0]['body'])
-        code = messages[0]['body'] #will need additional parsing
-        raise NotImplementedError
-        return code
+        #twilio_endpoint = self.config['text_auth']['twilio']['endpoint']
+        #phone_number = self.config['text_auth']['phone_number']
+        #twilio_auth = (self.config['text_auth']['twilio']['user'],self.config['text_auth']['twilio']['pw'])
+        #messages = requests.get(twilio_endpoint,params={'DateSent':'{:%y-%m-%d}'.format(datetime.datetime.now()),'to':phone_number},auth=twilio_auth).json
+        #log.info("auth code message: " + messages[0]['body'])
+        #code = messages[0]['body'] #will need additional parsing
+        #raise NotImplementedError
+        #return code
+        endpoint = self.config['text_auth']['retrieve']['endpoint']
+        data = requests.get(endpoint)
+        path = self.config['text_auth']['retrieve']['message_path'].split('.')
+        msg = data
+        for part in path:
+            msg = msg[part]
+        msg_re = re.complie(r"secret code for %s is ([0-9]*)\." % self.get_current_user(), re.IGNORECASE)
+        res = msg_re.findall(msg)
+        return res[0]
 
     def set_login(self,login):
         self.config.update({
@@ -348,47 +380,72 @@ class Helper:
             link = doc("a").attr("href")
             #driver = webdriver.Chrome(CHROMEDRIVER_PATH)
             driver.get(link)
+            #potential for text auth
+
             accept = driver.find_element_by_xpath("//section[contains(./@class,'previewButtons')]/form/button[contains(.,'ACCEPT')]")
             if accept:
                 accept.click()
+            else:
+                #assuming no accept means text auth. Can't get to the screen for a better check.
+                number = self.config['text_auth']['number']
+                driver.find_element_by_name("n").send_keys(number[0])
+                driver.find_element_by_name("n2").send_keys(number[1])
+                driver.find_element_by_name("n3").send_keys(number[2])
+                driver.find_element_by_css_selector("input[name='callType'][value='sms']").click()
+                #this is a guess since I can't find the page
+                driver.find_element_by_css_selector("button[type='submit']").click()
+                time.sleep(5)
+                code = self.get_text_auth()
+                #need to put in the code and submit it now, but again, no access to the page, frustratingly
+                driver.find_element_by_css_selector("input[name='code']").send_keys(str(code))
+                driver.find_element_by_css_selector("button[type='submit']").click()
             driver.close()
             return True
     def get_posts(self,include_time=False):
         data = None
-        with open(self.data_path) as file:
-            try:
-                data = json.load(file)
-            except json.decoder.JSONDecodeError:
-                data = {}
-        if 'posts' not in data:
-            data['posts'] = []
-        if not include_time:
-            return data['posts']
-        else:
-            data.update({'last_updated':self.last_updated})
-            return data
+        try:
+            with open(self.data_path) as file:
+                try:
+                    data = json.load(file)
+                except json.decoder.JSONDecodeError:
+                    data = {}
+            if 'posts' not in data:
+                data['posts'] = []
+            if not include_time:
+                return data['posts']
+            else:
+                data.update({'last_updated':self.last_updated})
+                return data
+        except FileNotFoundError:
+            return []
 
     @staticmethod
     def get_users():
         user_data = {}
-        with open(os.path.join(CURR_DIR,"data/cl_users.json"), "r") as file:
-            try:
-                user_data = json.load(file)
-            except json.decoder.JSONDecodeError:
-                log.info('No loadable data for CL users. Treating as empty.')
-        return list(user_data.keys())
+        try:
+            with open(os.path.join(CURR_DIR,"data/cl_users.json"), "r") as file:
+                try:
+                    user_data = json.load(file)
+                except json.decoder.JSONDecodeError:
+                    log.info('No loadable data for CL users. Treating as empty.')
+            return list(user_data.keys())
+        except FileNotFoundError:
+            return []
 
     @staticmethod
     def get_google_users():
         user_data = {}
-        with open(os.path.join(CURR_DIR, "data/user_data.json")) as file:
-            try:
-                user_data = json.load(file)
-            except json.decoder.JSONDecodeError:
-                #don't do anything, it's fine.
-                print("no google users")
-                log.info("First time load of user_data.json")
-        return list(user_data.keys())
+        try:
+            with open(os.path.join(CURR_DIR, "data/user_data.json")) as file:
+                try:
+                    user_data = json.load(file)
+                except json.decoder.JSONDecodeError:
+                    #don't do anything, it's fine.
+                    print("no google users")
+                    log.info("First time load of user_data.json")
+            return list(user_data.keys())
+        except FileNotFoundError:
+            return []
 
     def delete_users(self,users):
         user_data = {}
@@ -403,23 +460,26 @@ class Helper:
                 del user_data[user]
             except:
                 return False
-        with open(os.path.join(CURR_DIR,"data/cl_users.json"), "w") as file:
+        with open(os.path.join(CURR_DIR,"data/cl_users.json"), "w+") as file:
             json.dump(user_data,file)
         return True
     
     def save_current_user(self):
         user_data = {}
-        with open(os.path.join(CURR_DIR,"data/cl_users.json"), "r") as file:
-            try:
-                user_data = json.load(file)
-            except json.decoder.JSONDecodeError:
-                user_data = {}
+        try:
+            with open(os.path.join(CURR_DIR,"data/cl_users.json"), "r") as file:
+                try:
+                    user_data = json.load(file)
+                except json.decoder.JSONDecodeError:
+                    user_data = {}
+        except FileNotFoundError:
+            pass
         login = self.get_login()
         user_data[login[0]] = {
             'password': login[1],
             'google_email': self.google_email
         }
-        with open(os.path.join(CURR_DIR,"data/cl_users.json"), "w") as file:
+        with open(os.path.join(CURR_DIR,"data/cl_users.json"), "w+") as file:
             user_data = json.dump(user_data,file)
         return
 
@@ -436,7 +496,7 @@ class Helper:
         data['posts'].insert(0,post)
         if post['status'] == 'pending':
             self.pending_posts.append(post)
-        with open(self.data_path,'w') as file:
+        with open(self.data_path,'w+') as file:
             json.dump(data,file)
         self.last_updated = datetime.datetime.now().timestamp()
 

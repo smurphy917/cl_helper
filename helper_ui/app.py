@@ -1,3 +1,5 @@
+import sys
+from sys import platform
 from flask import Flask, request, make_response, render_template, jsonify
 from flask_script import Manager, Command
 import os
@@ -9,12 +11,16 @@ from selenium import webdriver
 from helper import helper
 from threading import Thread
 
-logging.config.dictConfig(json.load(open(os.path.join(os.path.dirname(__file__),"config/log.json"))))
+CURR_DIR = ""
+if hasattr(sys,'frozen'):
+    CURR_DIR = sys.prefix
+else:
+    CURR_DIR = os.path.dirname(os.path.realpath(__file__))
+logDir = os.path.join(os.getcwd(),"log")
+if not os.path.exists(logDir):
+    os.makedirs(logDir)
+logging.config.dictConfig(json.load(open(os.path.join(CURR_DIR,'config/log.json'))))
 log = logging.getLogger("helper_ui")
-
-CHROMEDRIVER_PATH = '/Users/smurphy917/Downloads/chromedriver'
-
-#app = Flask(__name__)
 
 class HelperUI:
 
