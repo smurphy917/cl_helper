@@ -16,6 +16,8 @@ if hasattr(sys,'frozen'):
     CURR_DIR = sys.prefix
 else:
     CURR_DIR = os.path.dirname(os.path.realpath(__file__))
+#overriding for testing
+CURR_DIR = os.path.dirname(__file__)
 logDir = os.path.join(os.getcwd(),"log")
 if not os.path.exists(logDir):
     os.makedirs(logDir)
