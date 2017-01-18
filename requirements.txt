@@ -8,3 +8,5 @@ pyquery>=1.2
 apiclient>=1.0
 google-api-python-client>=1.5
 httplib2>=0.9
+python-dateutil>=2.6
+pytz>=2016.10
