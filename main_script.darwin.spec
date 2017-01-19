@@ -8,7 +8,8 @@ data_files=[
     ('helper/data/empty.txt', 'helper/data'),
     ('helper_ui/config', 'helper_ui/config'),
     ('helper_ui/static', 'helper_ui/static'),
-    ('helper_ui/templates', 'helper_ui/templates')
+    ('helper_ui/templates', 'helper_ui/templates'),
+    ('drivers','drivers')
 ]
 
 a = Analysis(['main_script.py'],
