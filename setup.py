@@ -8,7 +8,7 @@ setup(
     description='A helper for a specific classifides service',
     author='Samuel Murphy',
     author_email='smurphy917@gmail.com',
-    packages=['helper','helper_ui'],
+    packages=['.','helper','helper_ui'],
     install_requires=[
         'selenium>=3.0',
         'flask>=0.11',
@@ -25,5 +25,10 @@ setup(
         "Intended Audience :: End Users",
         "Programming Language :: Python :: 3"
     ],
+    entry_points={
+        'console_scripts': [
+            'CL_Helper=main_script:__main__'
+        ]
+    },
     include_package_data=True
 )
