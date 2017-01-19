@@ -1,4 +1,4 @@
-#from sys import platform
+from sys import platform
 from helper_ui.app import HelperUI
 import selenium
 from selenium import webdriver
@@ -10,11 +10,10 @@ import logging
 DESIRED_CAPABILITIES = {'chromeOptions': {'args': ['--app=http://127.0.0.1:5000']}}
 CHROMEDRIVER_PATH = ""
 #TEMP
-CHROMEDRIVER_PATH = os.path.join(os.getcwd(),'drivers','win','chromedriver.exe')
-#if platform == 'darwin':
-#    CHROMEDRIVER_PATH = os.path.join(os.getcwd(),'drivers','macOS','chromedriver')
-#elif platform == 'win32':
-#    CHROMEDRIVER_PATH = os.path.join(os.getcwd(),'drivers','win','chromedriver.exe')
+if platform == 'darwin':
+    CHROMEDRIVER_PATH = os.path.join(os.getcwd(),'drivers','macOS','chromedriver')
+elif platform == 'win32':
+    CHROMEDRIVER_PATH = os.path.join(os.getcwd(),'drivers','win','chromedriver.exe')
 
 logging.getLogger("selenium.webdriver.remote.remote_connection").setLevel(logging.INFO)
 
