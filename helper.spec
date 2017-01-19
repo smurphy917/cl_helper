@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['main_script.py'],
+a = Analysis(['helper\\helper.py'],
              pathex=['C:\\Users\\PW-SMurphy\\workspace\\cl_helper'],
              binaries=[],
              datas=[],
@@ -19,7 +19,7 @@ pyz = PYZ(a.pure, a.zipped_data,
 exe = EXE(pyz,
           a.scripts,
           exclude_binaries=True,
-          name='main_script',
+          name='helper',
           debug=False,
           strip=False,
           upx=True,
@@ -30,4 +30,4 @@ coll = COLLECT(exe,
                a.datas,
                strip=False,
                upx=True,
-               name='main_script')
+               name='helper')

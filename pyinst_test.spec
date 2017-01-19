@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['main_script.py'],
+a = Analysis(['pyinst_test.py'],
              pathex=['C:\\Users\\PW-SMurphy\\workspace\\cl_helper'],
              binaries=[],
              datas=[],
@@ -19,8 +19,8 @@ pyz = PYZ(a.pure, a.zipped_data,
 exe = EXE(pyz,
           a.scripts,
           exclude_binaries=True,
-          name='main_script',
-          debug=False,
+          name='pyinst_test',
+          debug=True,
           strip=False,
           upx=True,
           console=True )
@@ -30,4 +30,4 @@ coll = COLLECT(exe,
                a.datas,
                strip=False,
                upx=True,
-               name='main_script')
+               name='pyinst_test')
