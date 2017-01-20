@@ -4,13 +4,12 @@ block_cipher = None
 
 data_files=[
     ('helper/config', 'helper/config'),
+    ('helper/config/log.json', 'config'),
     ('helper/data/empty.txt', 'helper/data'),
     ('helper_ui/config', 'helper_ui/config'),
     ('helper_ui/static', 'helper_ui/static'),
     ('helper_ui/templates', 'helper_ui/templates'),
-    ('drivers','drivers'),
-    ('logo.ico','.'),
-    ('config','config')
+    ('drivers','drivers')
 ]
 
 a = Analysis(['main_script.py'],
@@ -31,10 +30,8 @@ exe = EXE(pyz,
           a.binaries,
           a.zipfiles,
           a.datas,
-          name='CL Helper',
+          name='main_script',
           debug=False,
           strip=False,
           upx=True,
-          console=False,
-          icon='logo.ico'
-          )
+          console=False )

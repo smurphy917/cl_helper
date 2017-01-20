@@ -6,20 +6,37 @@ from threading import Thread
 import time, os
 import flask_script
 import logging
+import json
+import sys
+import traceback as tb
+import subprocess
 
 DESIRED_CAPABILITIES = {'chromeOptions': {'args': ['--app=http://127.0.0.1:5000']}}
 CHROMEDRIVER_PATH = ""
-#TEMP
-if platform == 'darwin':
-    CHROMEDRIVER_PATH = os.path.join(os.getcwd(),'drivers','macOS','chromedriver')
-elif platform == 'win32':
-    CHROMEDRIVER_PATH = os.path.join(os.getcwd(),'drivers','win','chromedriver.exe')
 
-logging.getLogger("selenium.webdriver.remote.remote_connection").setLevel(logging.INFO)
+ROOT_DIR = os.path.dirname(__file__)
+bundled = False
+if getattr(sys,'frozen',False):
+    ROOT_DIR = sys._MEIPASS
+    bundled = True
+
+if platform == 'darwin':
+    CHROMEDRIVER_PATH = os.path.join(ROOT_DIR,'drivers','macOS','chromedriver')
+elif platform == 'win32':
+    CHROMEDRIVER_PATH = os.path.join(ROOT_DIR,'drivers','win','chromedriver.exe')
+
+#logging.getLogger("selenium.webdriver.remote.remote_connection").setLevel(logging.DEBUG)
+with open(os.path.join(ROOT_DIR,'config','log.json')) as file:
+    logging.config.dictConfig(json.load(file))
+log = logging.getLogger("main")
+
+log.debug("main imported...")
 
 class Main(flask_script.Server):
     def __init__(self):
+        log.debug("main init...")
         self.helperui = HelperUI()
+        log.debug("...done")
     def __call__(self,app,*args,**kwargs):
         self.helperui.run()
         self.open_page()
@@ -27,19 +44,32 @@ class Main(flask_script.Server):
     def get_manager(self):
         return self.helperui.get_manager()
     def open_page(self):
+        log.debug("main.open_page()...")
         time.sleep(3)
-        self.driver = webdriver.Chrome(CHROMEDRIVER_PATH, desired_capabilities=DESIRED_CAPABILITIES)
+        log.debug("chromedriver path: %s" % CHROMEDRIVER_PATH)
+        log.debug("chromedriver exists: %s" % str(os.path.exists(CHROMEDRIVER_PATH)))
+        log.debug("creating driver...")
+        try:
+            self.driver = webdriver.Chrome(CHROMEDRIVER_PATH, desired_capabilities=DESIRED_CAPABILITIES)#, service_log_path=os.path.join(ROOT_DIR,"log","service_log.log"))
+        except Exception as e:
+            log.error(tb.format_exc())
+            sys.exit(1)
+        log.debug("driver created")
         self.main_handle = self.driver.current_window_handle
         self.driver.implicitly_wait(0.1)
         self.helperui.set_driver(self.driver)
         while self.driver_open():
             time.sleep(1)
-        print ("done")
+        sys.exit(0)
+        #print ("done")
     def driver_open(self):
         try:
             self.driver.switch_to.window(self.main_handle)
             return True
         except selenium.common.exceptions.NoSuchWindowException:
+            self.driver.quit()
+            return False
+        except Exception as e:
             self.driver.quit()
             return False
 
@@ -53,6 +83,6 @@ class CustomServer(flask_script.Server):
 
 manager.add_command('runserver',CustomServer)
 
-print("main name: " + __name__)
+#print("main name: " + __name__)
 if __name__ == "__main__":
     manager.run()

@@ -17,24 +17,24 @@ from . import google_auth
 import base64
 from pyquery import PyQuery as pq
 from .google_api import Goog
+import traceback as tb
 
-CURR_DIR = ""
-if hasattr(sys,'frozen'):
-    CURR_DIR = sys.prefix
-else:
-    CURR_DIR = os.path.dirname(os.path.realpath(__file__))
+ROOT_DIR = os.path.join(os.path.dirname(__file__),"..")
+if getattr(sys,'frozen',False):
+    ROOT_DIR = sys._MEIPASS
+DATA_DIR = os.path.join(ROOT_DIR,"helper","data")
 #overriding for testing
-CURR_DIR = os.path.dirname(__file__)
+#ROOT_DIR = os.path.dirname(__file__)
 logDir = os.path.join(os.getcwd(),"log")
 if not os.path.exists(logDir):
     os.makedirs(logDir)
-logging.config.dictConfig(json.load(open(os.path.join(CURR_DIR,'config/log.json'))))
+logging.config.dictConfig(json.load(open(os.path.join(ROOT_DIR,'config','log.json'))))
 log = logging.getLogger("cl_helper")
 CHROMEDRIVER_PATH = ""
 if platform == 'darwin':
-    CHROMEDRIVER_PATH = os.path.join(os.getcwd(),'drivers','macOS','chromedriver')
+    CHROMEDRIVER_PATH = os.path.join(ROOT_DIR,'drivers','macOS','chromedriver')
 elif platform == 'win32':
-    CHROMEDRIVER_PATH = os.path.join(os.getcwd(),'drivers','win','chromedriver.exe')
+    CHROMEDRIVER_PATH = os.path.join(ROOT_DIR,'drivers','win','chromedriver.exe')
 CL_BASE = "http://accounts.craigslist.org"
 
 class Helper:
@@ -44,7 +44,7 @@ class Helper:
         self.config = json.load(open(os.path.join(os.path.dirname(__file__),'config/cl_config.json')))
         self.ui_driver = ui_driver
         self.credentials = None
-        self.data_path = os.path.join(CURR_DIR,"data/posts.json")
+        self.data_path = os.path.join(DATA_DIR,"posts.json")
         self.pending_posts = []
         self.last_updated = datetime.datetime.now().timestamp()
         self.google_email = ""
@@ -62,7 +62,7 @@ class Helper:
         for post in posts:
             if post['status']=='pending':
                 self.pending_posts.append(post)
-        print("Helper __init__ - Login provided: " + str(login))
+        #print("Helper __init__ - Login provided: " + str(login))
         if login:
             self.set_login(login)
             if login[0].endswith('@gmail.com'):
@@ -72,7 +72,7 @@ class Helper:
         return
 
     def google_login(self,save_user=True, account=None):
-        print ("Logging in with Google email: %s" % self.google_email)
+        #print ("Logging in with Google email: %s" % self.google_email)
         if account:
             self.set_google_email(account)
         creds = google_auth.get_stored_credentials(self.google_email)
@@ -111,7 +111,7 @@ class Helper:
 
     def set_accounts(self,accounts):
         cl_users = {}
-        with open(os.path.join(CURR_DIR,"data/cl_users.json")) as file:
+        with open(os.path.join(DATA_DIR,"cl_users.json")) as file:
             try:
                 cl_users = json.load(file)
             except json.decoder.JSONDecodeError:
@@ -126,7 +126,12 @@ class Helper:
         return 'complete'
 
     def open_auth_url(self,url):
-        driver = webdriver.Chrome(CHROMEDRIVER_PATH)
+        log.debug("openeing new webdriver...")
+        try:
+            driver = webdriver.Chrome(CHROMEDRIVER_PATH)
+        except Exception as e:
+            log.debug(tb.format_exc())
+            return
         self.auth_driver = driver
         driver.implicitly_wait(2)
         driver.get(url)
@@ -144,7 +149,7 @@ class Helper:
         return email_address
 
     def set_google_email(self, email):
-        print("Google email set: %s" % email)
+        #print("Google email set: %s" % email)
         self.google_email = email
 
     def pause(self):
@@ -156,7 +161,7 @@ class Helper:
     def renew(self):
         if self.paused:
             return
-        print("helper.renew running...")
+        #print("helper.renew running...")
         driver = webdriver.Chrome(CHROMEDRIVER_PATH)
         if len(self.pending_posts):
             for post in self.pending_posts:
@@ -245,7 +250,7 @@ class Helper:
                             #post_href = driver.current_url
                             post_id = driver.current_url.split('?')[0].split('/')[-1]
                             #post_href = "http://dallas.craigslist.org/sdf/apa/%s.html" % post_id
-                            print("href: " + post_href + ", id: " + post_id)
+                            #print("href: " + post_href + ", id: " + post_id)
                             driver.find_element_by_css_selector("div.managebutton form input[name='go']").click()
                             #change available on date
                             Select(driver.find_element_by_name("moveinMonth")).select_by_value(now.month)
@@ -423,7 +428,7 @@ class Helper:
     def get_users():
         user_data = {}
         try:
-            with open(os.path.join(CURR_DIR,"data/cl_users.json"), "r") as file:
+            with open(os.path.join(DATA_DIR,"cl_users.json"), "r") as file:
                 try:
                     user_data = json.load(file)
                 except json.decoder.JSONDecodeError:
@@ -436,12 +441,12 @@ class Helper:
     def get_google_users():
         user_data = {}
         try:
-            with open(os.path.join(CURR_DIR, "data/user_data.json")) as file:
+            with open(os.path.join(DATA_DIR, "user_data.json")) as file:
                 try:
                     user_data = json.load(file)
                 except json.decoder.JSONDecodeError:
                     #don't do anything, it's fine.
-                    print("no google users")
+                    #print("no google users")
                     log.info("First time load of user_data.json")
             return list(user_data.keys())
         except FileNotFoundError:
@@ -449,7 +454,7 @@ class Helper:
 
     def delete_users(self,users):
         user_data = {}
-        with open(os.path.join(CURR_DIR,"data/cl_users.json"), "r") as file:
+        with open(os.path.join(DATA_DIR,"cl_users.json"), "r") as file:
             try:
                 user_data = json.load(file)
             except json.decoder.JSONDecodeError:
@@ -460,14 +465,14 @@ class Helper:
                 del user_data[user]
             except:
                 return False
-        with open(os.path.join(CURR_DIR,"data/cl_users.json"), "w+") as file:
+        with open(os.path.join(DATA_DIR,"cl_users.json"), "w+") as file:
             json.dump(user_data,file)
         return True
     
     def save_current_user(self):
         user_data = {}
         try:
-            with open(os.path.join(CURR_DIR,"data/cl_users.json"), "r") as file:
+            with open(os.path.join(DATA_DIR,"cl_users.json"), "r") as file:
                 try:
                     user_data = json.load(file)
                 except json.decoder.JSONDecodeError:
@@ -479,7 +484,7 @@ class Helper:
             'password': login[1],
             'google_email': self.google_email
         }
-        with open(os.path.join(CURR_DIR,"data/cl_users.json"), "w+") as file:
+        with open(os.path.join(DATA_DIR,"cl_users.json"), "w+") as file:
             user_data = json.dump(user_data,file)
         return
 
@@ -501,7 +506,7 @@ class Helper:
         self.last_updated = datetime.datetime.now().timestamp()
 
     def update_post(self,updated_post, current_posts=None):
-        print("updating post: %s" % json.dumps(updated_post))
+        #print("updating post: %s" % json.dumps(updated_post))
         posts = current_posts
         if current_posts == None:
             posts = self.get_posts()
@@ -524,11 +529,11 @@ class Helper:
         self.add_post(post,posts)
 
 def StartHelper(helper=None,login=None, minutes=6):
-    print("Helper Starting...")
+    #print("Helper Starting...")
     if not helper:
-        print("StartHelper: no helper provided, creating one from login")
+        #print("StartHelper: no helper provided, creating one from login")
         helper = Helper(login)
-    print("callable: " + str(hasattr(helper.renew,'__call__')))
+    #print("callable: " + str(hasattr(helper.renew,'__call__')))
     helper.renew()
     schedule.every(minutes).minutes.do(helper.renew)
 

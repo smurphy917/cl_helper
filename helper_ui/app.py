@@ -11,17 +11,15 @@ from selenium import webdriver
 from helper import helper
 from threading import Thread
 
-CURR_DIR = ""
-if hasattr(sys,'frozen'):
-    CURR_DIR = sys.prefix
-else:
-    CURR_DIR = os.path.dirname(os.path.realpath(__file__))
+ROOT_DIR = os.path.join(os.path.dirname(__file__),"..")
+if getattr(sys,'frozen',False):
+    ROOT_DIR = sys.prefix
 #overriding for testing
-CURR_DIR = os.path.dirname(__file__)
+#ROOT_DIR = os.path.dirname(__file__)
 logDir = os.path.join(os.getcwd(),"log")
 if not os.path.exists(logDir):
     os.makedirs(logDir)
-logging.config.dictConfig(json.load(open(os.path.join(CURR_DIR,'config/log.json'))))
+logging.config.dictConfig(json.load(open(os.path.join(ROOT_DIR,'config','log.json'))))
 log = logging.getLogger("helper_ui")
 
 class HelperUI:
@@ -103,14 +101,14 @@ class HelperUI:
             return jsonify({'status': 'error'})
 
     def add_google_account(self):
-        print("Adding Google account...")
+        #print("Adding Google account...")
         reqData = request.get_json()
         email = ""
         if reqData is not None and 'google_account' in reqData:
             email = reqData['google_account']
-        print("Setting google email: %s" % email)
+        #print("Setting google email: %s" % email)
         self.helper.set_google_email(email)
-        print("Loggin in google")
+        #print("Loggin in google")
         self.helper.google_login(save_user=False)
         self.internal_status = "NEW_GOOGLE_ACCOUNT"
         return jsonify({'status': 'Pending Google Authorization'})
@@ -185,7 +183,7 @@ class HelperUI:
         resp = helper.Helper.get_users()
         resp_g = helper.Helper.get_google_users()
         res = {'available_users':resp, 'available_google_users': resp_g}
-        print(json.dumps(res))
+        #print(json.dumps(res))
         return jsonify(res)
 
     def pause(self):
