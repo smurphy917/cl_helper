@@ -541,9 +541,9 @@ class Helper:
             'body': "LOG FILES ATTACHED FOR USER: %s" % user
         }
         files = [
-            os.path.abspath(os.path.join(ROOT_DIR,'log','debug.log')),
-            os.path.abspath(os.path.join(ROOT_DIR,'log','info.log')),
-            os.path.abspath(os.path.join(ROOT_DIR,'log','errors.log'))
+            os.path.abspath(os.path.join(logDir,'debug.log')),
+            os.path.abspath(os.path.join(logDir,'info.log')),
+            os.path.abspath(os.path.join(logDir,'errors.log'))
             ]
         print(files)
         api = Goog(self.credentials)
