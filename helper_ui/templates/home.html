@@ -49,11 +49,13 @@
 				<a class="navbar-brand" href="/">CL Helper</a>
 			</div>
 			<div id="navbar" class="navbar-collapse collapse">
-				<!--ul class="nav navbar-nav navbar-right">
-					<li><a href="#">Dashboard</a></li>
-					<li><a href="#">Settings</a></li>
+				<ul class="nav navbar-nav navbar-right">
+					<!-- ko if: available_google_users().length -->
+					<li><a href="#" data-bind="click: submit_logs">Send Logs</a></li>
+					<!-- /ko -->
+					<!--li><a href="#">Settings</a></li>
 					<li><a href="#">Profile</a></li>
-					<li><a href="#">Help</a></li>
+					<li><a href="#">Help</a></li-->
 				</ul-->
 				<!--form class="navbar-form navbar-right">
 					<input type="text" class="form-control" placeholder="Search...">
@@ -185,6 +187,7 @@
 					</table>
 				</div>
 				<!-- START -->
+				<!--
 				<div class="container-fluid">
 					<div class="panel-group">
 						<div class="panel panel-default">
@@ -201,6 +204,7 @@
 						</div>
 					</div>
 				</div>
+				-->
 				<!-- END -->
 			</div>
 		</div>

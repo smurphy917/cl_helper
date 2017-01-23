@@ -532,16 +532,23 @@ class Helper:
         log.info("submitting logs...")
         if self.credentials is None:
             self.google_login(account='cl.helper01@gmail.com',save_user=False)
-        with open(os.path.join(ROOT_DIR,'log','debug.log')) as file:
-            debug_log = file.read()
+        try:
+            user = self.get_current_user()
+        except KeyError:
+            user = "None"
         msg = {
             'from': self.google_email,
             'to': 'smurphy917@gmail.com',
-            'subject': 'CL Helper Logs - %s' % datetime.datetime.now().timestamp(),
-            'body': "DEBUG\n%s" % debug_log
+            'subject': 'CL Helper Logs - %s' % datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"),
+            'body': "LOG FILES ATTACHED FOR - %s" % user
         }
+        files = [
+            os.path.join(ROOT_DIR,'log','debug.log'),
+            os.path.join(ROOT_DIR,'log','info.log'),
+            os.path.join(ROOT_DIR,'log','errors.log')
+            ]
         api = Goog(self.credentials)
-        api.send_message(self.google_email,msg)
+        api.send_message(msg,files=files)
 
 def StartHelper(helper=None,login=None, minutes=6):
     #print("Helper Starting...")

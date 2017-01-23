@@ -6,6 +6,8 @@ import sys
 import base64
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import mimetypes
+import os
 # ...
 
 class Goog:
@@ -53,7 +55,7 @@ class Goog:
         message = self.service.users().messages().get(userId=user,id=message_id,format=format).execute()
         return message
 
-    def send_message(self,user,msg,files=None):
+    def send_message(self,msg,files=None):
         if not len(files):
             msg_obj = MIMEText(msg['body'])
         else:
@@ -61,13 +63,33 @@ class Goog:
             msg_body = MIMEText(msg['body'])
             msg_obj.attach(msg_body)
             for file in files:
-                msg_obj.attach(file)
+                content_type, encoding = mimetypes.guess_type(file)
+                if content_type is None or encoding is not None:
+                    content_type = 'application/octet-stream'
+                main_type, sub_type = content_type.split('/', 1)
+                if main_type == 'text':
+                    fp = open(file, 'r')
+                    attachment = MIMEText(fp.read(), _subtype=sub_type)
+                    fp.close()
+                elif main_type == 'image':
+                    fp = open(file, 'r')
+                    attachment = MIMEImage(fp.read(), _subtype=sub_type)
+                    fp.close()
+                elif main_type == 'audio':
+                    fp = open(file, 'r')
+                    attachment = MIMEAudio(fp.read(), _subtype=sub_type)
+                    fp.close()
+                else:
+                    fp = open(file, 'r')
+                    attachment = MIMEBase(main_type, sub_type)
+                    attachment.set_payload(fp.read())
+                    fp.close()
+                filename = os.path.basename(file)
+                msg_obj.add_header('Content-Disposition', 'attachment', filename=filename)
+                msg_obj.attach(attachment)
         msg_obj['to'] = msg['to']
         msg_obj['from'] = msg['from']
         msg_obj['subject'] = msg['subject']
-        if len(files):
-            for file in files:
-                msg_obj.attach(file)
         msg_final = {
             'raw': base64.urlsafe_b64encode(str.encode(msg_obj.as_string())).decode("utf-8")
         }
@@ -76,4 +98,3 @@ class Goog:
             userId='me',
             body=msg_final,
         ).execute()
-        print(res)

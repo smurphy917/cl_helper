@@ -212,6 +212,9 @@ function CLHelperViewModel() {
             method: 'GET',
             success: function(resp){
                 self.status(resp.status);
+            },
+            error: function(){
+                self.status("Error Sending Logs");
             }
         });
     };
