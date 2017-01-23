@@ -363,7 +363,7 @@ class Helper:
     def verify_via_email(self,driver,email_address,email_time):
         if self.credentials is None:
             self.google_login()
-        api = Goog(self.credentials)
+        self.Goog = api = Goog(self.credentials)
         tries = 0
         maxTries = 12
         while True:
@@ -527,6 +527,21 @@ class Helper:
                 self.update_post(post,posts)
                 return
         self.add_post(post,posts)
+
+    def submit_logs(self):
+        log.info("submitting logs...")
+        if self.credentials is None:
+            self.google_login(account='cl.helper01@gmail.com',save_user=False)
+        with open(os.path.join(ROOT_DIR,'log','debug.log')) as file:
+            debug_log = file.read()
+        msg = {
+            'from': self.google_email,
+            'to': 'smurphy917@gmail.com',
+            'subject': 'CL Helper Logs - %s' % datetime.datetime.now().timestamp(),
+            'body': "DEBUG\n%s" % debug_log
+        }
+        api = Goog(self.credentials)
+        api.send_message(self.google_email,msg)
 
 def StartHelper(helper=None,login=None, minutes=6):
     #print("Helper Starting...")

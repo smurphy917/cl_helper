@@ -158,6 +158,7 @@
 					<!-- ko if: status()==="Paused" -->
 					<button name="resume" data-bind="click: resume">Resume</button>
 					<!-- /ko -->
+					
 				</div>
 
 				<h2 class="sub-header">Recent Reposts</h2>
@@ -183,6 +184,24 @@
 						</tbody>
 					</table>
 				</div>
+				<!-- START -->
+				<div class="container-fluid">
+					<div class="panel-group">
+						<div class="panel panel-default">
+							<div class="panel-heading" data-toggle="collapse" data-target="#debug-panel">
+								<h4 class="panel-title">
+									<a href="#">Debugging</a>
+								</h4>
+							</div>
+							<div id="debug-panel" class="panel-collapse collapse">
+								<div class="panel-body">
+									<button class="btn btn-default" data-bind="click: submit_logs">Submit Logs</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- END -->
 			</div>
 		</div>
 	</div>

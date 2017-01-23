@@ -2,6 +2,10 @@ from apiclient import errors
 from apiclient.discovery import build
 import httplib2
 import json
+import sys
+import base64
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 # ...
 
 class Goog:
@@ -48,3 +52,28 @@ class Goog:
     def get_message(self,user,message_id,format='raw'):
         message = self.service.users().messages().get(userId=user,id=message_id,format=format).execute()
         return message
+
+    def send_message(self,user,msg,files=None):
+        if not len(files):
+            msg_obj = MIMEText(msg['body'])
+        else:
+            msg_obj = MIMEMultipart()
+            msg_body = MIMEText(msg['body'])
+            msg_obj.attach(msg_body)
+            for file in files:
+                msg_obj.attach(file)
+        msg_obj['to'] = msg['to']
+        msg_obj['from'] = msg['from']
+        msg_obj['subject'] = msg['subject']
+        if len(files):
+            for file in files:
+                msg_obj.attach(file)
+        msg_final = {
+            'raw': base64.urlsafe_b64encode(str.encode(msg_obj.as_string())).decode("utf-8")
+        }
+        #print(json.dumps(msg_final, indent=2))
+        res = self.service.users().messages().send(
+            userId='me',
+            body=msg_final,
+        ).execute()
+        print(res)

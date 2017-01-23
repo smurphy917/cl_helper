@@ -25,7 +25,7 @@ if platform == 'darwin':
 elif platform == 'win32':
     CHROMEDRIVER_PATH = os.path.join(ROOT_DIR,'drivers','win','chromedriver.exe')
 
-#logging.getLogger("selenium.webdriver.remote.remote_connection").setLevel(logging.DEBUG)
+logging.getLogger("selenium.webdriver.remote.remote_connection").setLevel(logging.INFO)
 with open(os.path.join(ROOT_DIR,'config','log.json')) as file:
     logging.config.dictConfig(json.load(file))
 log = logging.getLogger("main")

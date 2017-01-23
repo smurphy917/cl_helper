@@ -203,7 +203,18 @@ function CLHelperViewModel() {
                 self.status(resp.status);
             }
         });
-    }
+    };
+
+    this.submit_logs = function(){
+        var self = this;
+        $.ajax({
+            url: '/submit_logs',
+            method: 'GET',
+            success: function(resp){
+                self.status(resp.status);
+            }
+        });
+    };
 
     this.init()
 }

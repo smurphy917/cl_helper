@@ -23,6 +23,7 @@ CLIENTSECRETS_LOCATION = os.path.join(os.path.dirname(__file__),'config/client_i
 REDIRECT_URI = "http://localhost:5000/complete_auth" #"urn:ietf:wg:oauth:2.0:oob"
 SCOPES = [
     'https://www.googleapis.com/auth/gmail.readonly',
+    'https://www.googleapis.com/auth/gmail.send',
     'https://www.googleapis.com/auth/userinfo.email',
     'https://www.googleapis.com/auth/userinfo.profile',
     # Add other requested scopes.
