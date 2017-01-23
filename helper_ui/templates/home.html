@@ -50,9 +50,7 @@
 			</div>
 			<div id="navbar" class="navbar-collapse collapse">
 				<ul class="nav navbar-nav navbar-right">
-					<!-- ko if: available_google_users().length -->
 					<li><a href="#" data-bind="click: submit_logs">Send Logs</a></li>
-					<!-- /ko -->
 					<!--li><a href="#">Settings</a></li>
 					<li><a href="#">Profile</a></li>
 					<li><a href="#">Help</a></li-->
@@ -64,10 +62,34 @@
 		</div>
 	</nav>
 
+	<!-- Modal for alerts -->
+	<!--
+	<div id="alertModal" class="modal fade" role="dialog">
+		<div class="model-dialog">
+			<div class="modal-content">
+				<div class="model-header">
+					<button type="button" class="close" data-dismiss="model">&times;</button>
+					<h4 class="modal-title" data-bind="text: modalTitle"></h4>
+				</div>
+				<div class="modal-body">
+					<p data-bind="modalBody"></p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	-->
+	<!-- END Modal -->
+
 	<div class="container-fluid">
 		<div class="row">
 			<div class="col-sm-10 col-sm-offset-1 col-md-10 col-md-offset-1 main">
 				<a style="display:none;" id="openAuthInput" data-bind="click:function(){authInputOpen(true);}">&nbsp;</a>
+				<!-- ko if: showDanger() -->
+				<div data-bind="html: dangerAlert"></div>
+				<!-- /ko -->
 				<h1 class="page-header">Status: <span data-bind="text: status"></span></h1>
 				<div class="container-fluid">
 					<!-- ko if: status()!=="Running" && status()!=="Paused" -->

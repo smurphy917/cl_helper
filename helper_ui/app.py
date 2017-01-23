@@ -39,6 +39,7 @@ class HelperUI:
         self.app.add_url_rule("/add_google_account", view_func=self.add_google_account, methods=['GET'])
         self.app.add_url_rule("/delete_accounts", view_func=self.delete_accounts, methods=['POST'])
         self.app.add_url_rule("/submit_logs", view_func=self.submit_logs, methods=['GET'])
+        self.app.add_url_rule("/alert_template", view_func=self.alert, methods=['GET'])
         self.last_updated = datetime.datetime.now().timestamp()
         self.helper = helper.Helper()
 
@@ -212,6 +213,11 @@ class HelperUI:
     def submit_logs(self):
         self.helper.submit_logs()
         return jsonify({'status': 'Logs Submitted'})
+
+    def alert(self):
+        data = request.values.to_dict()
+        print(data)
+        return render_template('alert.html',data=data)
         
 
     

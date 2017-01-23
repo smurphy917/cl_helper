@@ -37,6 +37,11 @@ function CLHelperViewModel() {
     this.available_google_users = ko.observableArray([]);
     this.selectedGoogleAccount = ko.observable('');
 
+    this.dangerTitle = ko.observable("");
+    this.dangerBody = ko.observable("");
+    this.showDanger = ko.observable(false);
+    this.dangerAlert = ko.observable("");
+
     this.addUser = function(){
         var self = this;
         googleAccount = self.user().endsWith("@gmail.com") ? self.user() : self.selectedGoogleAccount()[0];
@@ -201,20 +206,54 @@ function CLHelperViewModel() {
             method: 'GET',
             success: function(resp){
                 self.status(resp.status);
+                self.showDanger(false);
             }
         });
     };
 
     this.submit_logs = function(){
         var self = this;
+        if(!self.available_google_users().length){
+            $.ajax({
+                url: '/alert_template',
+                method: 'GET',
+                data: {'title': 'Error! ', 'body': 'Cannot submit logs. At least one Google account must be added to submit logs.'},
+                success: function(resp){
+                    self.dangerAlert(resp);
+                    self.dangerAlert.valueHasMutated();
+                }
+            });
+            self.status("Error Sending Logs");
+            //self.dangerTitle("Error! ");
+            //self.dangerBody("Cannot submit logs. At least one Google account must be added to submit logs.");
+            self.showDanger(true);
+            /*
+            var alertDiv = $("#dangerAlertDiv")[0];
+            console.log(alertDiv);
+            ko.cleanNode(alertDiv);
+            ko.applyBindings(self,alertDiv);
+            */
+            return;
+        }
         $.ajax({
             url: '/submit_logs',
             method: 'GET',
             success: function(resp){
                 self.status(resp.status);
+                self.showDanger(false);
             },
             error: function(){
+                $.ajax({
+                    url: '/alert_template',
+                    method: 'GET',
+                    success: function(resp){
+                        self.dangerAlert(resp);
+                    }
+                });
                 self.status("Error Sending Logs");
+                self.dangerTitle("Error!");
+                self.dangerBody("Cannot submit logs. Please restart CL Helper and try again. Contact author if issue persists.");
+                self.showDanger(true);
             }
         });
     };

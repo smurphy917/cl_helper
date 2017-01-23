@@ -74,7 +74,7 @@ def get_stored_credentials(user_id):
           return Credentials.new_from_json(json.dumps(user_data[user_id]['stored_credentials']))
         else:
           return None
-  except FileNotFoundError:
+  except (FileNotFoundError, json.decoder.JSONDecodeError):
     return None
   # TODO: Implement this function to work with your database.
   #       To instantiate an OAuth2Credentials instance from a Json
@@ -101,7 +101,7 @@ def store_credentials(user_id, credentials):
   try:
     with open(os.path.join(os.path.dirname(__file__),'data/user_data.json'),'r') as file:
         user_data = json.load(file)
-  except FileNotFoundError:
+  except (FileNotFoundError, json.decoder.JSONDecodeError):
     pass
   if user_id not in user_data:
     user_data[user_id] = {'stored_credentials': {}}

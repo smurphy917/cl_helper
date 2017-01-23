@@ -535,7 +535,6 @@ class Helper:
             'subject': 'CL Helper Logs - %s' % logTime.strftime("%Y/%m/%d %H:%M:%S"),
             'body': "LOG FILES ATTACHED FOR USER: %s" % user
         }
-        log.
         files = [
             os.path.abspath(os.path.join(ROOT_DIR,'log','debug.log')),
             os.path.abspath(os.path.join(ROOT_DIR,'log','info.log')),
