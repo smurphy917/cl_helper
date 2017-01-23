@@ -6,6 +6,9 @@ import sys
 import base64
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.audio import MIMEAudio
+from email.mime.image import MIMEImage
+from email.mime.base import MIMEBase
 import mimetypes
 import os
 # ...
@@ -62,30 +65,30 @@ class Goog:
             msg_obj = MIMEMultipart()
             msg_body = MIMEText(msg['body'])
             msg_obj.attach(msg_body)
-            for file in files:
-                content_type, encoding = mimetypes.guess_type(file)
+            for f in files:
+                content_type, encoding = mimetypes.guess_type(f)
+                content_type, encoding = 'text/plain', 'utf-8'
                 if content_type is None or encoding is not None:
                     content_type = 'application/octet-stream'
                 main_type, sub_type = content_type.split('/', 1)
+                print(main_type + " -- " + sub_type)
                 if main_type == 'text':
-                    fp = open(file, 'r')
-                    attachment = MIMEText(fp.read(), _subtype=sub_type)
-                    fp.close()
+                    with open(f, 'r') as fp:
+                        attachment = MIMEText(fp.read(), _subtype=sub_type)
                 elif main_type == 'image':
-                    fp = open(file, 'r')
-                    attachment = MIMEImage(fp.read(), _subtype=sub_type)
-                    fp.close()
+                    with open(f, 'r') as fp:
+                        attachment = MIMEImage(fp.read(), _subtype=sub_type)
                 elif main_type == 'audio':
-                    fp = open(file, 'r')
-                    attachment = MIMEAudio(fp.read(), _subtype=sub_type)
-                    fp.close()
+                    with open(f, 'r') as fp:
+                        attachment = MIMEAudio(fp.read(), _subtype=sub_type)
                 else:
-                    fp = open(file, 'r')
                     attachment = MIMEBase(main_type, sub_type)
-                    attachment.set_payload(fp.read())
-                    fp.close()
-                filename = os.path.basename(file)
-                msg_obj.add_header('Content-Disposition', 'attachment', filename=filename)
+                    with open(f, 'r') as fp:
+                        attachment.set_payload(fp.read())
+                filename = os.path.basename(f)
+                if filename.endswith('.log'):
+                    filename+= '.txt'
+                attachment.add_header('Content-Disposition', 'attachment', filename=filename)
                 msg_obj.attach(attachment)
         msg_obj['to'] = msg['to']
         msg_obj['from'] = msg['from']

@@ -329,14 +329,6 @@ class Helper:
         driver.close()
 
     def get_text_auth(self):
-        #twilio_endpoint = self.config['text_auth']['twilio']['endpoint']
-        #phone_number = self.config['text_auth']['phone_number']
-        #twilio_auth = (self.config['text_auth']['twilio']['user'],self.config['text_auth']['twilio']['pw'])
-        #messages = requests.get(twilio_endpoint,params={'DateSent':'{:%y-%m-%d}'.format(datetime.datetime.now()),'to':phone_number},auth=twilio_auth).json
-        #log.info("auth code message: " + messages[0]['body'])
-        #code = messages[0]['body'] #will need additional parsing
-        #raise NotImplementedError
-        #return code
         endpoint = self.config['text_auth']['retrieve']['endpoint']
         data = requests.get(endpoint)
         path = self.config['text_auth']['retrieve']['message_path'].split('.')
@@ -530,6 +522,7 @@ class Helper:
 
     def submit_logs(self):
         log.info("submitting logs...")
+        logTime = datetime.datetime.now()
         if self.credentials is None:
             self.google_login(account='cl.helper01@gmail.com',save_user=False)
         try:
@@ -539,23 +532,22 @@ class Helper:
         msg = {
             'from': self.google_email,
             'to': 'smurphy917@gmail.com',
-            'subject': 'CL Helper Logs - %s' % datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"),
-            'body': "LOG FILES ATTACHED FOR - %s" % user
+            'subject': 'CL Helper Logs - %s' % logTime.strftime("%Y/%m/%d %H:%M:%S"),
+            'body': "LOG FILES ATTACHED FOR USER: %s" % user
         }
+        log.
         files = [
-            os.path.join(ROOT_DIR,'log','debug.log'),
-            os.path.join(ROOT_DIR,'log','info.log'),
-            os.path.join(ROOT_DIR,'log','errors.log')
+            os.path.abspath(os.path.join(ROOT_DIR,'log','debug.log')),
+            os.path.abspath(os.path.join(ROOT_DIR,'log','info.log')),
+            os.path.abspath(os.path.join(ROOT_DIR,'log','errors.log'))
             ]
+        print(files)
         api = Goog(self.credentials)
         api.send_message(msg,files=files)
 
 def StartHelper(helper=None,login=None, minutes=6):
-    #print("Helper Starting...")
     if not helper:
-        #print("StartHelper: no helper provided, creating one from login")
         helper = Helper(login)
-    #print("callable: " + str(hasattr(helper.renew,'__call__')))
     helper.renew()
     schedule.every(minutes).minutes.do(helper.renew)
 
