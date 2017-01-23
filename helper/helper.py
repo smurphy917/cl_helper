@@ -18,6 +18,7 @@ import base64
 from pyquery import PyQuery as pq
 from .google_api import Goog
 import traceback as tb
+import getpass
 
 ROOT_DIR = os.path.join(os.path.dirname(__file__),"..")
 if getattr(sys,'frozen',False):
@@ -529,10 +530,14 @@ class Helper:
             user = self.get_current_user()
         except KeyError:
             user = "None"
+        try:
+            osuser = getpass.getuser()
+        except Exception:
+            osuser = "None"
         msg = {
             'from': self.google_email,
             'to': 'smurphy917@gmail.com',
-            'subject': 'CL Helper Logs - %s' % logTime.strftime("%Y/%m/%d %H:%M:%S"),
+            'subject': 'CL Helper Logs - %s - %s' % (osuser,logTime.strftime("%Y/%m/%d %H:%M:%S")),
             'body': "LOG FILES ATTACHED FOR USER: %s" % user
         }
         files = [

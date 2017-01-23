@@ -67,11 +67,9 @@ class Goog:
             msg_obj.attach(msg_body)
             for f in files:
                 content_type, encoding = mimetypes.guess_type(f)
-                content_type, encoding = 'text/plain', 'utf-8'
                 if content_type is None or encoding is not None:
                     content_type = 'application/octet-stream'
                 main_type, sub_type = content_type.split('/', 1)
-                print(main_type + " -- " + sub_type)
                 if main_type == 'text':
                     with open(f, 'r') as fp:
                         attachment = MIMEText(fp.read(), _subtype=sub_type)
@@ -96,7 +94,6 @@ class Goog:
         msg_final = {
             'raw': base64.urlsafe_b64encode(str.encode(msg_obj.as_string())).decode("utf-8")
         }
-        #print(json.dumps(msg_final, indent=2))
         res = self.service.users().messages().send(
             userId='me',
             body=msg_final,

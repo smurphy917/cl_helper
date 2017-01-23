@@ -54,8 +54,8 @@
 					<!--li><a href="#">Settings</a></li>
 					<li><a href="#">Profile</a></li>
 					<li><a href="#">Help</a></li-->
-				</ul-->
-				<!--form class="navbar-form navbar-right">
+					</ul-->
+					<!--form class="navbar-form navbar-right">
 					<input type="text" class="form-control" placeholder="Search...">
 				</form-->
 			</div>
@@ -87,9 +87,10 @@
 		<div class="row">
 			<div class="col-sm-10 col-sm-offset-1 col-md-10 col-md-offset-1 main">
 				<a style="display:none;" id="openAuthInput" data-bind="click:function(){authInputOpen(true);}">&nbsp;</a>
-				<!-- ko if: showDanger() -->
-				<div data-bind="html: dangerAlert"></div>
-				<!-- /ko -->
+				<div id="dangerAlert" class="alert alert-danger alert-dismissable fade in" role="alert" style="display:none;">
+					<button type="button" class="close" data-bind="click: function(){dangerAlert.slideUp();}" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<strong data-bind="text: dangerTitle"></strong><span data-bind="text: dangerBody"></span>
+				</div>
 				<h1 class="page-header">Status: <span data-bind="text: status"></span></h1>
 				<div class="container-fluid">
 					<!-- ko if: status()!=="Running" && status()!=="Paused" -->
@@ -182,7 +183,7 @@
 					<!-- ko if: status()==="Paused" -->
 					<button name="resume" data-bind="click: resume">Resume</button>
 					<!-- /ko -->
-					
+
 				</div>
 
 				<h2 class="sub-header">Recent Reposts</h2>
