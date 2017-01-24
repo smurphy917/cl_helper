@@ -1,8 +1,8 @@
 from appdirs import user_log_dir, user_config_dir
 import os, json, logging, re
 
-log_dir = user_log_dir('clHelper','s_murphy')
-config_dir = user_config_dir('clHelper','s_murphy')
+log_dir = user_log_dir('CL Helper','s_murphy')
+config_dir = user_config_dir('CL Helper','s_murphy')
 
 class LogFilter(logging.Filter):
 

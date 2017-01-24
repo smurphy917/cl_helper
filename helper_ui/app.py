@@ -14,12 +14,7 @@ from threading import Thread
 ROOT_DIR = os.path.join(os.path.dirname(__file__),"..")
 if getattr(sys,'frozen',False):
     ROOT_DIR = sys.prefix
-#overriding for testing
-#ROOT_DIR = os.path.dirname(__file__)
-logDir = os.path.join(os.getcwd(),"log")
-if not os.path.exists(logDir):
-    os.makedirs(logDir)
-logging.config.dictConfig(json.load(open(os.path.join(ROOT_DIR,'config','log.json'))))
+
 log = logging.getLogger("helper_ui")
 
 class HelperUI:

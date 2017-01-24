@@ -21,8 +21,10 @@ import traceback as tb
 import getpass
 from appdirs import user_log_dir, user_data_dir
 
-logDir = user_log_dir('clHelper','s_murphy') #os.path.join(os.getcwd(),"log")
-dataDir = user_data_dir('clHelper','s_murphy')
+#this is a comment
+
+logDir = user_log_dir('CL Helper','s_murphy') #os.path.join(os.getcwd(),"log")
+dataDir = user_data_dir('CL Helper','s_murphy')
 
 ROOT_DIR = os.path.join(os.path.dirname(__file__),"..")
 if getattr(sys,'frozen',False):

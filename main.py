@@ -10,8 +10,7 @@ import json
 import sys
 import traceback as tb
 import subprocess
-
-VERSION = '0.1.0alpha3'
+import upgrade
 
 DESIRED_CAPABILITIES = {'chromeOptions': {'args': ['--app=http://127.0.0.1:5000']}}
 CHROMEDRIVER_PATH = ""
@@ -35,9 +34,9 @@ log = logging.getLogger("main")
 log.debug("main imported...")
 
 class Main(flask_script.Server):
-    def __init__(self):
+    def __init__(self,version=None):
         log.debug("main init...")
-        self.helperui = HelperUI(version=VERSION)
+        self.helperui = HelperUI(version=version)
         log.debug("...done")
     def __call__(self,app,*args,**kwargs):
         self.helperui.run()
@@ -75,7 +74,7 @@ class Main(flask_script.Server):
             self.driver.quit()
             return False
 
-main = Main()
+main = Main(version=upgrade.APP_VERSION)
 manager = main.get_manager()
 
 class CustomServer(flask_script.Server):

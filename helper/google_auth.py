@@ -24,7 +24,7 @@ ROOT_DIR = os.path.join(os.path.dirname(__file__),'..')
 if getattr(sys,"frozen",False):
   ROOT_DIR = sys._MEIPASS
 
-DATA_DIR = user_data_dir('clHelper','s_murphy')
+DATA_DIR = user_data_dir('CL Helper','s_murphy')
 
 CLIENTSECRETS_LOCATION = os.path.join(ROOT_DIR,'helper','config','client_id.google.json')
 REDIRECT_URI = "http://localhost:5000/complete_auth" #"urn:ietf:wg:oauth:2.0:oob"

@@ -6,3 +6,10 @@ __pycache__/*
 *.egg-info/*
 dist
 *.pyc
+pyu-data
+.pyupdater
+*.s3
+keypack.pyu
+*.log
+*.bak
+repository.json

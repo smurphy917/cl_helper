@@ -1,12 +1,18 @@
 import sys
 import os
-import main, init_config
+import main, init_config, upgrade
 from threading import Thread
 import logging
 import logging.config
 import json
 
+bundled = False
+if getattr(sys, 'frozen', False):
+    bundled = True
+
 init_config.init()
+if bundled:
+    upgrade.upgrade()
 
 log = logging.getLogger('main_script')
 log.info("main_script Initialized")
@@ -19,7 +25,7 @@ def run_main(args=None):
     log.info('Starting server thread...')
     t.start()
     log.info('Initializing main...')
-    m = main.Main()
+    m = main.Main(version=upgrade.APP_VERSION)
     log.info('Starting client...')
     m.open_page()
     log.info('Closing...')
