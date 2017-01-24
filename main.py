@@ -11,6 +11,8 @@ import sys
 import traceback as tb
 import subprocess
 
+VERSION = '0.1.0alpha3'
+
 DESIRED_CAPABILITIES = {'chromeOptions': {'args': ['--app=http://127.0.0.1:5000']}}
 CHROMEDRIVER_PATH = ""
 
@@ -25,9 +27,9 @@ if platform == 'darwin':
 elif platform == 'win32':
     CHROMEDRIVER_PATH = os.path.join(ROOT_DIR,'drivers','win','chromedriver.exe')
 
-logging.getLogger("selenium.webdriver.remote.remote_connection").setLevel(logging.INFO)
-with open(os.path.join(ROOT_DIR,'config','log.json')) as file:
-    logging.config.dictConfig(json.load(file))
+# setLevel(logging.INFO)
+#with open(os.path.join(ROOT_DIR,'config','log.json')) as file:
+#    logging.config.dictConfig(json.load(file))
 log = logging.getLogger("main")
 
 log.debug("main imported...")
@@ -35,7 +37,7 @@ log.debug("main imported...")
 class Main(flask_script.Server):
     def __init__(self):
         log.debug("main init...")
-        self.helperui = HelperUI()
+        self.helperui = HelperUI(version=VERSION)
         log.debug("...done")
     def __call__(self,app,*args,**kwargs):
         self.helperui.run()
@@ -45,7 +47,7 @@ class Main(flask_script.Server):
         return self.helperui.get_manager()
     def open_page(self):
         log.debug("main.open_page()...")
-        time.sleep(3)
+        time.sleep(1)
         log.debug("chromedriver path: %s" % CHROMEDRIVER_PATH)
         log.debug("chromedriver exists: %s" % str(os.path.exists(CHROMEDRIVER_PATH)))
         log.debug("creating driver...")
@@ -60,7 +62,7 @@ class Main(flask_script.Server):
         self.helperui.set_driver(self.driver)
         while self.driver_open():
             time.sleep(1)
-        sys.exit(0)
+        return
         #print ("done")
     def driver_open(self):
         try:

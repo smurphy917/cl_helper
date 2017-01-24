@@ -1,5 +1,6 @@
 function CLHelperViewModel() {
     var viewModel = this;
+    this.meta = ko.observable({})
     this.posts = ko.observableArray([]);
     this.user = ko.observable("");
     this.passwd = ko.observable("");
@@ -183,6 +184,13 @@ function CLHelperViewModel() {
             }
             self.available_users(curr);
             self.available_google_users(curr_gmail);
+        });
+        $.ajax({
+            url: '/meta',
+            method: 'GET',
+            success: function(resp){
+                self.meta(resp);
+            }
         });
         this.poller().start()
     };

@@ -19,17 +19,23 @@ from pyquery import PyQuery as pq
 from .google_api import Goog
 import traceback as tb
 import getpass
+from appdirs import user_log_dir, user_data_dir
+
+logDir = user_log_dir('clHelper','s_murphy') #os.path.join(os.getcwd(),"log")
+dataDir = user_data_dir('clHelper','s_murphy')
 
 ROOT_DIR = os.path.join(os.path.dirname(__file__),"..")
 if getattr(sys,'frozen',False):
     ROOT_DIR = sys._MEIPASS
-DATA_DIR = os.path.join(ROOT_DIR,"helper","data")
-#overriding for testing
-#ROOT_DIR = os.path.dirname(__file__)
-logDir = os.path.join(os.getcwd(),"log")
-if not os.path.exists(logDir):
-    os.makedirs(logDir)
-logging.config.dictConfig(json.load(open(os.path.join(ROOT_DIR,'config','log.json'))))
+DATA_DIR = dataDir 
+
+if not os.path.exists(DATA_DIR):
+    os.makedirs(DATA_DIR)
+
+#if not os.path.exists(logDir):
+#    os.makedirs(logDir)
+#with open(os.path.join(configDir,'log.json')) as file:
+#    logging.config.dictConfig(json.load(file))
 log = logging.getLogger("cl_helper")
 CHROMEDRIVER_PATH = ""
 if platform == 'darwin':
@@ -112,12 +118,15 @@ class Helper:
 
     def set_accounts(self,accounts):
         cl_users = {}
-        with open(os.path.join(DATA_DIR,"cl_users.json")) as file:
-            try:
-                cl_users = json.load(file)
-            except json.decoder.JSONDecodeError:
-                #don't do anything, it's fine.
-                log.info("First time load of user_data.json")
+        try:
+            with open(os.path.join(DATA_DIR,"cl_users.json")) as file:
+                try:
+                    cl_users = json.load(file)
+                except json.decoder.JSONDecodeError:
+                    #don't do anything, it's fine.
+                    log.info("First time load of cl_users.json")
+        except FileNotFoundError:
+            log.info("First time load of cl_users.json")
         users = cl_users.keys()
         self.accounts = []
         for account in accounts:
@@ -187,7 +196,10 @@ class Helper:
             driver.find_element_by_css_selector("button.accountform-btn").click()
             for d in [2,1,0]:
                 dateFilter = now - dateutil.relativedelta.relativedelta(months=d)
-                dateFilter = "%i-%i" % (dateFilter.year,dateFilter.month)
+                if dateFilter.month == 1:
+                    dateFilter = dateFilter.strftime("%Y")
+                else:
+                    dateFilter = dateFilter.strftime("%Y-%m")
                 driver.get(CL_BASE + "/login/home?filter_date=" + dateFilter)
                 num_of_pages = len(driver.find_elements_by_css_selector("#paginator legend a")) + 1
                 for page in range(num_of_pages):
@@ -246,35 +258,43 @@ class Helper:
                                 done = True
                                 done_done = True
                                 break
-                            log.info("Clicking 'delete'")
+                            log.debug("Clicking 'delete' on posts page")
                             oldest_post.find_element_by_css_selector("form.delete input[name='go']").click()
-                            #post_href = driver.current_url
+                            #oldest post deleted
                             post_id = driver.current_url.split('?')[0].split('/')[-1]
-                            #post_href = "http://dallas.craigslist.org/sdf/apa/%s.html" % post_id
-                            #print("href: " + post_href + ", id: " + post_id)
+                            log.debug("Clicking 'repost' on deleted post page")
                             driver.find_element_by_css_selector("div.managebutton form input[name='go']").click()
+                            #opens post details for editing before re-posting
                             #change available on date
-                            Select(driver.find_element_by_name("moveinMonth")).select_by_value(now.month)
-                            driver.find_element_by_name("moveinDay").send_keys(now.day)
-                            driver.find_element_by_name("moveinYear").send_keys(now.year)
+                            Select(driver.find_element_by_name("moveinMonth")).select_by_value(str(now.month))
+                            driver.find_element_by_name("moveinDay").clear()
+                            driver.find_element_by_name("moveinDay").send_keys(str(now.day))
+                            driver.find_element_by_name("moveinYear").clear()
+                            driver.find_element_by_name("moveinYear").send_keys(str(now.year))
                             continues = driver.find_elements_by_css_selector("button[value='Continue']")
                             if not len(continues):
+                                log.debug("No 'Continue' button on post details page.")
+                                raise
                                 link_ps = driver.find_elements_by_xpath("//p[contains(.,'Your posting can be seen at')]/a")
                                 if len(link_ps):
                                     post_href = link_ps[0].get_attribute("href")
                                 else:
-                                    self.upsert_post({
-                                        'id': post_id,
-                                        'account': self.get_current_user(),
-                                        'status': 'reposted',
-                                        'title': post_title,
-                                        'href': post_href,
-                                        'last_update': datetime.datetime.now().timestamp()
-                                    })
-                                    done = True
-                                    break
+                                    raise
+                                self.upsert_post({
+                                    'id': post_id,
+                                    'account': self.get_current_user(),
+                                    'status': 'reposted',
+                                    'title': post_title,
+                                    'href': post_href,
+                                    'last_update': datetime.datetime.now().timestamp()
+                                })
+                                done = True
+                                break
                             else:
+                                log.debug("Clicking 'Continue' button on post details page")
+                                #'Continue' button is clicked
                                 continues[0].click()
+                                log.debug("Clicking 'Publish' button on post confirmation page")
                                 driver.find_element_by_css_selector("button[value='Continue']").click()
                                 email_auth = driver.find_elements_by_xpath("//b[contains(.,'You should receive an email shortly')]")
                                 text_auth = None
@@ -307,7 +327,9 @@ class Helper:
                                 elif text_auth:
                                     code = self.get_text_auth()
                                 else:
-                                    #post_href = driver.find_element_by_xpath("//li[contains(.,'View your post at')]/a").get_attribute("href")
+                                    link_a = driver.find_elements_by_xpath("//li[contains(.,'View your post at')]/a")
+                                    if len(link_a):
+                                        post_href = link_a[0].get_attribute("href")
                                     self.upsert_post({
                                         'id': post_id,
                                         'account': self.get_current_user(),
@@ -447,12 +469,16 @@ class Helper:
 
     def delete_users(self,users):
         user_data = {}
-        with open(os.path.join(DATA_DIR,"cl_users.json"), "r") as file:
-            try:
-                user_data = json.load(file)
-            except json.decoder.JSONDecodeError:
-                #don't do anything, it's fine.
-                log.info("First time load of user_data.json")
+        try:
+            with open(os.path.join(DATA_DIR,"cl_users.json"), "r") as file:
+                try:
+                    user_data = json.load(file)
+                except json.decoder.JSONDecodeError:
+                    #don't do anything, it's fine.
+                    log.info("First time load of cl_users.json")
+        except FileNotFoundError:
+            log.info("helper.delete_users - no user file present.")
+            return True
         for user in users:
             try:
                 del user_data[user]

@@ -4,8 +4,9 @@ from oauth2client.client import FlowExchangeError
 from oauth2client.client import Credentials
 from apiclient.discovery import build
 import httplib2
-import os
+import sys, os
 import json
+from appdirs import user_data_dir
 # ...
 
 
@@ -19,7 +20,13 @@ import json
 #       "token_uri": "https://accounts.google.com/o/oauth2/token"
 #     }
 #   }
-CLIENTSECRETS_LOCATION = os.path.join(os.path.dirname(__file__),'config/client_id.google.json')
+ROOT_DIR = os.path.join(os.path.dirname(__file__),'..')
+if getattr(sys,"frozen",False):
+  ROOT_DIR = sys._MEIPASS
+
+DATA_DIR = user_data_dir('clHelper','s_murphy')
+
+CLIENTSECRETS_LOCATION = os.path.join(ROOT_DIR,'helper','config','client_id.google.json')
 REDIRECT_URI = "http://localhost:5000/complete_auth" #"urn:ietf:wg:oauth:2.0:oob"
 SCOPES = [
     'https://www.googleapis.com/auth/gmail.readonly',
@@ -68,7 +75,7 @@ def get_stored_credentials(user_id):
   """
   log.debug("retrieving user credentials for: " + user_id)
   try:
-    with open(os.path.join(os.path.dirname(__file__),'data/user_data.json'), 'r') as file:
+    with open(os.path.join(DATA_DIR, 'user_data.json'), 'r') as file:
         user_data = json.load(file)
         if user_id in user_data:
           return Credentials.new_from_json(json.dumps(user_data[user_id]['stored_credentials']))
@@ -99,14 +106,14 @@ def store_credentials(user_id, credentials):
   log.debug("storing user credentials for: " + user_email)
   user_data = {}
   try:
-    with open(os.path.join(os.path.dirname(__file__),'data/user_data.json'),'r') as file:
+    with open(os.path.join(DATA_DIR,'user_data.json'),'r') as file:
         user_data = json.load(file)
   except (FileNotFoundError, json.decoder.JSONDecodeError):
     pass
   if user_id not in user_data:
     user_data[user_id] = {'stored_credentials': {}}
   user_data[user_id]['stored_credentials'] = json.loads(credentials.to_json())
-  with open(os.path.join(os.path.dirname(__file__),'data/user_data.json'),'w+') as file:
+  with open(os.path.join(DATA_DIR,'user_data.json'),'w+') as file:
     json.dump(user_data,file)
   '''
   # TODO: Implement this function to work with your database.

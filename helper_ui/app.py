@@ -24,9 +24,10 @@ log = logging.getLogger("helper_ui")
 
 class HelperUI:
 
-    def __init__(self,driver=None):
+    def __init__(self,driver=None, version=None):
         self.driver = driver
         self.status = "Not Started"
+        self.version = version
         self.app = Flask(__name__)
         self.app.add_url_rule("/",view_func=self.home,methods=['GET'])
         self.app.add_url_rule("/start",view_func=self.start,methods=['POST'])
@@ -39,6 +40,7 @@ class HelperUI:
         self.app.add_url_rule("/add_google_account", view_func=self.add_google_account, methods=['GET'])
         self.app.add_url_rule("/delete_accounts", view_func=self.delete_accounts, methods=['POST'])
         self.app.add_url_rule("/submit_logs", view_func=self.submit_logs, methods=['GET'])
+        self.app.add_url_rule("/meta",view_func=self.meta, methods=['GET'])
         self.last_updated = datetime.datetime.now().timestamp()
         self.helper = helper.Helper()
 
@@ -212,6 +214,11 @@ class HelperUI:
     def submit_logs(self):
         self.helper.submit_logs()
         return jsonify({'status': 'Logs Submitted'})
+
+    def meta(self):
+        return jsonify({
+            'version': self.version if self.version else '-'
+        })
         
 
     
