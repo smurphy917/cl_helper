@@ -12,3 +12,4 @@ python-dateutil>=2.6
 pytz>=2016.10
 #https://github.com/pyinstaller/pyinstaller/archive/develop.zip
 pyinstaller>=3.2.1
+pyupdater
