@@ -40,10 +40,13 @@ if not os.path.exists(DATA_DIR):
 #    logging.config.dictConfig(json.load(file))
 log = logging.getLogger("cl_helper")
 CHROMEDRIVER_PATH = ""
+PHANTOMJS_PATH = ""
 if platform == 'darwin':
     CHROMEDRIVER_PATH = os.path.join(ROOT_DIR,'drivers','macOS','chromedriver')
+    PHANTOMJS_PATH = os.path.join(ROOT_DIR,'drivers','macOS','phantomjs')
 elif platform == 'win32':
     CHROMEDRIVER_PATH = os.path.join(ROOT_DIR,'drivers','win','chromedriver.exe')
+    CHROMEDRIVER_PATH = os.path.join(ROOT_DIR,'drivers','win','phantomjs.exe')
 CL_BASE = "http://accounts.craigslist.org"
 
 class Helper:
@@ -140,7 +143,8 @@ class Helper:
     def open_auth_url(self,url):
         log.debug("openeing new webdriver...")
         try:
-            driver = webdriver.Chrome(CHROMEDRIVER_PATH)
+            #driver = webdriver.Chrome(CHROMEDRIVER_PATH)
+            driver = webdriver.PhantomJS(executable_path=PHANTOMJS_PATH)
         except Exception as e:
             log.debug(tb.format_exc())
             return
@@ -174,7 +178,8 @@ class Helper:
         if self.paused:
             return
         #print("helper.renew running...")
-        driver = webdriver.Chrome(CHROMEDRIVER_PATH)
+        #driver = webdriver.Chrome(CHROMEDRIVER_PATH, desired_capabilities={'chromeOptions':{'args':['--no-startup-window']}})
+        driver = webdriver.PhantomJS(executable_path=PHANTOMJS_PATH)
         if len(self.pending_posts):
             for post in self.pending_posts:
                 if post['type']=='email':
