@@ -4,8 +4,6 @@ block_cipher = None
 
 data_files=[
     ('helper/config', 'helper/config'),
-    ('helper/data/empty.txt', 'helper/data'),
-    ('helper_ui/config', 'helper_ui/config'),
     ('helper_ui/static', 'helper_ui/static'),
     ('helper_ui/templates', 'helper_ui/templates'),
     ('drivers','drivers'),
@@ -13,12 +11,12 @@ data_files=[
     ('config','config')
 ]
 
-a = Analysis(['C:\\Users\\PW-SMurphy\\workspace\\cl_helper\\main_script.py'],
-             pathex=['C:\\Users\\PW-SMurphy\\workspace\\cl_helper', 'C:\\Users\\PW-SMurphy\\workspace\\cl_helper'],
+a = Analysis(['C:\\Users\\IEUser\\Documents\\workspace\\cl_helper\\main_script.py'],
+             pathex=['C:\\Users\\IEUser\\Documents\\workspace\\cl_helper', 'C:\\Users\\IEUser\\Documents\\workspace\\cl_helper'],
              binaries=[],
              datas=data_files,
              hiddenimports=[],
-             hookspath=['c:\\users\\pw-smurphy\\appdata\\local\\programs\\python\\python35-32\\lib\\site-packages\\pyupdater\\hooks'],
+             hookspath=['c:\\users\\ieuser\\appdata\\local\\programs\\python\\python35-32\\lib\\site-packages\\pyupdater\\hooks'],
              runtime_hooks=[],
              excludes=['jinja2.asyncsupport', 'jinja2.asyncfilters'],
              win_no_prefer_redirects=False,
@@ -35,6 +33,6 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=True,
-          console=False,
+          console=True,
           icon='logo.ico'
           )
