@@ -46,7 +46,7 @@ if platform == 'darwin':
     PHANTOMJS_PATH = os.path.join(ROOT_DIR,'drivers','macOS','phantomjs')
 elif platform == 'win32':
     CHROMEDRIVER_PATH = os.path.join(ROOT_DIR,'drivers','win','chromedriver.exe')
-    CHROMEDRIVER_PATH = os.path.join(ROOT_DIR,'drivers','win','phantomjs.exe')
+    PHANTOMJS_PATH = os.path.join(ROOT_DIR,'drivers','win','phantomjs.exe')
 CL_BASE = "http://accounts.craigslist.org"
 
 class Helper:
@@ -143,8 +143,8 @@ class Helper:
     def open_auth_url(self,url):
         log.debug("openeing new webdriver...")
         try:
-            #driver = webdriver.Chrome(CHROMEDRIVER_PATH)
-            driver = webdriver.PhantomJS(executable_path=PHANTOMJS_PATH)
+            driver = webdriver.Chrome(CHROMEDRIVER_PATH)
+            #driver = webdriver.PhantomJS(executable_path=PHANTOMJS_PATH)
         except Exception as e:
             log.debug(tb.format_exc())
             return
