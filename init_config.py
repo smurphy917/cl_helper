@@ -1,8 +1,12 @@
 from appdirs import user_log_dir, user_config_dir
-import os, json, logging, re
+import os, json, logging, re, sys
 
 log_dir = user_log_dir('CL Helper','s_murphy')
 config_dir = user_config_dir('CL Helper','s_murphy')
+
+ROOT_DIR = os.path.dirname(__file__)
+if getattr(sys,'frozen',False):
+    ROOT_DIR = sys._MEIPASS
 
 class LogFilter(logging.Filter):
 
@@ -20,7 +24,7 @@ class LogFilter(logging.Filter):
         return True
 
 def create_log_config():
-    with open(os.path.join('config','log.json')) as file:
+    with open(os.path.join(ROOT_DIR,'config','log.json')) as file:
         log_config = json.load(file)
     for key, handler in log_config['handlers'].items():
         if 'filename' in handler:
