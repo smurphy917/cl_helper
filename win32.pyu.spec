@@ -8,7 +8,8 @@ data_files=[
     ('helper_ui/templates', 'helper_ui/templates'),
     ('drivers','drivers'),
     ('logo.ico','.'),
-    ('config','config')
+    ('config','config'),
+    ('meta.json','.')
 ]
 
 a = Analysis(['C:\\Users\\IEUser\\Documents\\workspace\\cl_helper\\main_script.py'],

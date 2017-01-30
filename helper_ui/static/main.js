@@ -1,3 +1,62 @@
+var objUpdate = function(obj1,obj2){
+    if(typeof obj2 === 'object' && typeof obj1 !== 'object'){
+        //for now
+        obj1 = {};
+    } 
+    for(var k in obj2){
+        if(typeof obj2[k] === 'object'){
+            if(obj1[k] && typeof obj1[k] === 'object'){
+                objUpdate(obj1[k],obj2[k]);
+            }else{
+                obj1[k] = obj2[k];
+            }
+        }else if(typeof obj2[k] === 'array'){
+            if(obj1[k] && typeof obj1[k] === 'array'){
+                obj1[k] = obj1[k].concat(obj2[k]);
+            }else{
+                obj1[k] = obj2[k];
+            }
+        }else{
+            obj1[k] = obj2[k];
+        }
+    }
+};
+
+/*
+Object.prototype.smDeltaUpdate = function(obj){
+    objUpdate(this,obj);
+}
+*/
+/*
+Object.prototype.sm_update = function(obj){
+    objUpdate(this,obj);
+};
+*/
+/*
+ko.extenders.objUpdate = function(target, option){
+    if(option){
+        target.subscribe(function(new_value){
+            console.log(new_value);
+            console.log(current_value);
+            console.log(this);
+            console.log(target());
+            window.debug = target;
+            if(0){
+                return;
+            }
+            var curr = target();
+            if(typeof curr !== "object"){
+                target(new_value);
+                return;
+            }
+            objUpdate(curr,new_value);
+            target(curr);
+            return target;
+        });
+    }
+};
+*/
+
 function CLHelperViewModel() {
     var viewModel = this;
     this.meta = ko.observable({})
@@ -38,11 +97,39 @@ function CLHelperViewModel() {
     this.available_google_users = ko.observableArray([]);
     this.selectedGoogleAccount = ko.observable('');
 
+    this.alertData = ko.observable({
+        danger: {
+            title: '',
+            body: '',
+            shown: false
+        },
+        success: {
+            title: '',
+            body: '',
+            shown: false
+        }
+    });//.extend({objUpdate: true});
+    this.alerts = {
+        danger: $("#dangerAlert"),
+        success: $("#successAlert")
+    }
+
+    /*
     this.dangerTitle = ko.observable("");
     this.dangerBody = ko.observable("");
     this.showDanger = ko.observable(false);
     this.dangerAlert = $("#dangerAlert");
 
+    this.successTitle = ko.observable("");
+    this.successBody = ko.observable("");
+    this.showSuccess = ko.observable(false);
+    this.successAlert = $("#successAlert");
+    */
+
+    this.installProgress = ko.observable(0);
+    this.installModalTitle = ko.observable("");
+    this.installModalBody = ko.observable("");
+    this.installModal = $("#installProgress");
 
 
     this.addUser = function(){
@@ -146,6 +233,23 @@ function CLHelperViewModel() {
                         }
                         viewModel.status(resp.status)
                     }
+                    if(resp.available_update){
+                        viewModel.updateVersion = resp.available_update;
+                        var alertData = viewModel.alertData();
+                        objUpdate(alertData,{
+                            success: {
+                                title: 'New Version Available! ',
+                                body: 'Click to install version ' + resp.available_update + 'and restart CL Helper.',
+                                button: {
+                                    enabled: true,
+                                    text: 'Install & Update',
+                                    target: viewModel.install
+                                }
+                            }
+                        });
+                        viewModel.alertData(alertData);
+                        viewModel.alerts.success.slideDown();
+                    }
                     setTimeout(function(){self.poll(time)},time*1000);
                 });
             },
@@ -154,6 +258,28 @@ function CLHelperViewModel() {
             }
         }
     };
+
+    this.installPoller = function(){
+        return {
+            poll: function(time){
+                var self = this;
+                $.ajax({
+                    url: '/install_poll',
+                    method: 'GET',
+                    success: function(resp){
+                        viewModel.installProgress(resp.install_progress);
+                        if(resp.install_progress<100){
+                            setTimeout(function(){self.poll(time)},time*1000);
+                        }
+                    }
+                });
+
+            },
+            start: function(){
+                this.poll(0.5);
+            }
+        }
+    }
 
     this.complete_auth = function(){
         var self = this;
@@ -225,9 +351,27 @@ function CLHelperViewModel() {
         var self = this;
         if(!self.available_google_users().length){
             self.status("Error Sending Logs");
+            var alertData = self.alertData();
+            objUpdate(alertData,{
+                danger:{
+                    title: "Error! ",
+                    body: "Cannot submit logs. At least one Google account must be added to submit logs."
+                }
+            });
+            self.alertData(alertData);
+            /*
+            self.alertData({
+                danger:{
+                    title: "Error! ",
+                    body: "Cannot submit logs. At least one Google account must be added to submit logs."
+                }
+            });
+            */
+            /*
             self.dangerTitle("Error! ");
             self.dangerBody("Cannot submit logs. At least one Google account must be added to submit logs.");
-            self.dangerAlert.slideDown();
+            */
+            self.alerts.danger.slideDown();
             return;
         }
         $.ajax({
@@ -239,9 +383,44 @@ function CLHelperViewModel() {
             },
             error: function(){
                 self.status("Error Sending Logs");
+                var alertData = self.alertData();
+                objUpdate(alertData,{
+                    danger: {
+                        title: "Error! ",
+                        body: "Cannot submit logs. Please restart CL Helper and try again. Contact author if issue persists."
+                    }
+                });
+                /*
+                self.alertData({
+                    danger: {
+                        title: "Error! ",
+                        body: "Cannot submit logs. Please restart CL Helper and try again. Contact author if issue persists."
+                    }
+                });
+                */
+                self.alertData(alertData);
+                /*
                 self.dangerTitle("Error!");
                 self.dangerBody("Cannot submit logs. Please restart CL Helper and try again. Contact author if issue persists.");
-                self.dangerAlert.slideDown();
+                */
+                self.alerts.danger.slideDown();
+            }
+        });
+    };
+
+    this.install = function(){
+        $.ajax({
+            url: '/install_update',
+            method: 'POST',
+            contentType: 'application/json',
+            success: function(resp){
+                if(resp.installing){
+                    viewModel.installModalTitle("Downloading and Installing version " + viewModel.updateVersion);
+                    viewModel.installModalBody("CL Helper will restart when complete.");
+                    viewModel.installProgress(0);
+                    viewModel.installModal.modal('show');
+                    viewModel.installPoller().start();
+                }
             }
         });
     };

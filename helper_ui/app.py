@@ -10,10 +10,13 @@ import time
 from selenium import webdriver
 from helper import helper
 from threading import Thread
+import upgrade
 
 ROOT_DIR = os.path.join(os.path.dirname(__file__),"..")
+bundled = False
 if getattr(sys,'frozen',False):
     ROOT_DIR = sys.prefix
+    bundled = True
 
 log = logging.getLogger("helper_ui")
 
@@ -23,6 +26,7 @@ class HelperUI:
         self.driver = driver
         self.status = "Not Started"
         self.version = version
+        self.update = None
         self.app = Flask(__name__)
         self.app.add_url_rule("/",view_func=self.home,methods=['GET'])
         self.app.add_url_rule("/start",view_func=self.start,methods=['POST'])
@@ -36,11 +40,19 @@ class HelperUI:
         self.app.add_url_rule("/delete_accounts", view_func=self.delete_accounts, methods=['POST'])
         self.app.add_url_rule("/submit_logs", view_func=self.submit_logs, methods=['GET'])
         self.app.add_url_rule("/meta",view_func=self.meta, methods=['GET'])
+        self.app.add_url_rule("/install_update",view_func=self.install_update, methods=['POST'])
+        self.app.add_url_rule("/install_poll",view_func=self.install_poll, methods=['GET'])
         self.last_updated = datetime.datetime.now().timestamp()
         self.helper = helper.Helper()
+        self.upgrade = upgrade.Upgrade()
+        self._restarting = False
+        if bundled:
+            Thread(target=self.upgrade.check_for_update,kwargs={'callback':self.set_update}).start()
 
     def set_driver(self,driver):
+        log.debug("HelperUI - driver set")
         self.driver = driver
+        log.debug(self.driver)
 
     def home(self):
         data = {
@@ -61,6 +73,9 @@ class HelperUI:
             ]
         }
         return render_template('home.html',data=data)
+
+    def set_update(self,update):
+        self.update = update
 
     def add_account(self):
         reqData = request.get_json()
@@ -162,7 +177,14 @@ class HelperUI:
             del self.new_google_account
         if hasattr(self,'new_account'):
             resp['added_accounts'] = ['self.new_account']
+        if self.update:
+            print(self.update)
+            resp['available_update'] = self.upgrade.format_version(self.update.latest)
         return jsonify(resp)
+
+    def install_update(self):
+        Thread(target=self.upgrade.install,kwargs={'update':self.update, 'callback': self.pre_restart}).start()
+        return jsonify({'installing':True})
 
     def complete_auth(self):
         access_code = request.args['code']
@@ -212,8 +234,25 @@ class HelperUI:
 
     def meta(self):
         return jsonify({
-            'version': self.version if self.version else '-'
+            'version': self.upgrade.format_version(self.version) if self.version else '-'
         })
+
+    def pre_restart(self):
+        #need this to prevent sys.exit during restart
+        self._restarting = True
+        self.driver.quit()
+
+    def install_poll(self):
+        status, progress = self.upgrade.progress()
+        return jsonify({
+            'install_progress': progress,
+            'status': status
+        })
+
+    def restarting(self):
+        log.debug("Is restarting: " + str(self._restarting))
+        return self._restarting
+
         
 
     

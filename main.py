@@ -74,8 +74,11 @@ class Main(flask_script.Server):
             self.driver.quit()
             return False
 
-main = Main(version=upgrade.APP_VERSION)
-manager = main.get_manager()
+    def restarting(self):
+        return self.helperui.restarting()
+
+Application = Main(version=upgrade.APP_VERSION)
+manager = Application.get_manager()
 
 class CustomServer(flask_script.Server):
     def __call__(self,app,*args,**kwargs):

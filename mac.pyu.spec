@@ -4,20 +4,19 @@ block_cipher = None
 
 data_files=[
     ('helper/config', 'helper/config'),
-    ('helper/config/log.json', 'config'),
-    ('helper/data/empty.txt', 'helper/data'),
-    ('helper_ui/config', 'helper_ui/config'),
     ('helper_ui/static', 'helper_ui/static'),
     ('helper_ui/templates', 'helper_ui/templates'),
-    ('drivers','drivers')
+    ('config','config'),
+    ('drivers','drivers'),
+    ('logo.ico','.')
 ]
 
-a = Analysis(['main_script.py'],
-             pathex=['/Users/smurphy917/proj/cl_helper'],
+a = Analysis(['/Users/smurphy917/proj/cl_helper/main_script.py'],
+             pathex=['/Users/smurphy917/proj/cl_helper', '/Users/smurphy917/proj/cl_helper'],
              binaries=[],
              datas=data_files,
              hiddenimports=[],
-             hookspath=[],
+             hookspath=['/Users/smurphy917/miniconda3/lib/python3.5/site-packages/pyupdater/hooks'],
              runtime_hooks=[],
              excludes=['jinja2.asyncsupport','jinja2.asyncfilters'],
              win_no_prefer_redirects=False,
@@ -27,16 +26,13 @@ pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
 exe = EXE(pyz,
           a.scripts,
-          exclude_binaries=True,
-          name='main_script',
+          a.binaries,
+          a.zipfiles,
+          a.datas,
+          name='mac',
           debug=False,
           strip=False,
           upx=True,
-          console=True )
-coll = COLLECT(exe,
-               a.binaries,
-               a.zipfiles,
-               a.datas,
-               strip=False,
-               upx=True,
-               name='main_script')
+          console=False,
+          icon='logo.ico'
+        )
