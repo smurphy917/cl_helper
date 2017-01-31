@@ -176,7 +176,9 @@ class HelperUI:
             resp['added_google_accounts'] = [self.new_google_account]
             del self.new_google_account
         if hasattr(self,'new_account'):
-            resp['added_accounts'] = ['self.new_account']
+            resp['added_accounts'] = [self.new_account]
+            resp['added_google_accounts'] = [self.new_account]
+            del self.new_account
         if self.update:
             print(self.update)
             resp['available_update'] = self.upgrade.format_version(self.update.latest)
