@@ -36,6 +36,8 @@ def run_main(args=None):
             log.debug("starting restart waiting loop...")
             while 1:
                 time.sleep(10)
+    except SystemExit:
+        pass
     except:
         log.debug("Error condition exit.")
         log.error(tb.format_exc())

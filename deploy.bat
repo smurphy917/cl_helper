@@ -1,7 +1,7 @@
 @echo off
 set /p version=<config\version
-set "PYU_AWS_ID=AKIAIHVLDAEIBMV5WIQQ"
-set "PYU_AWS_SECRET=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"
+FOR /F %%l IN (id.s3) DO
+    set%%l
 rem set /p version="Enter version:"
 set CWD=%CD%
 cd %~dp0
