@@ -1,7 +1,6 @@
 @echo off
 set /p version=<config\version
-FOR /F %%l IN (id.s3) DO
-    set%%l
+FOR /F "tokens=1,2 delims==" %%G IN (id.s3) DO set %%G=%%H
 rem set /p version="Enter version:"
 set CWD=%CD%
 cd %~dp0
