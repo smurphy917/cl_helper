@@ -20,6 +20,7 @@ from .google_api import Goog
 import traceback as tb
 import getpass
 from appdirs import user_log_dir, user_data_dir
+import multiprocessing
 
 #this is a comment
 
@@ -51,7 +52,7 @@ CL_BASE = "http://accounts.craigslist.org"
 
 class Helper:
 
-    def __init__(self,ui_driver=None,login=None):
+    def __init__(self,ui_driver=None,login=None, version=None):
         self.status = 'Initialized'
         self.config = json.load(open(os.path.join(os.path.dirname(__file__),'config/cl_config.json')))
         self.ui_driver = ui_driver
@@ -62,6 +63,7 @@ class Helper:
         self.google_email = ""
         self.paused = False
         self.started = False
+        self.version = version
 
         #try:
         #    with open(self.data_path) as file:
@@ -179,6 +181,7 @@ class Helper:
             return
         #print("helper.renew running...")
         #driver = webdriver.Chrome(CHROMEDRIVER_PATH, desired_capabilities={'chromeOptions':{'args':['--no-startup-window']}})
+        log.debug("Renew running in " + ("daemonic" if multiprocessing.current_process().daemon else "non-daemonic") + " process")
         driver = webdriver.PhantomJS(executable_path=PHANTOMJS_PATH)
         if len(self.pending_posts):
             for post in self.pending_posts:
@@ -571,14 +574,15 @@ class Helper:
             'from': self.google_email,
             'to': 'smurphy917@gmail.com',
             'subject': 'CL Helper Logs - %s - %s' % (osuser,logTime.strftime("%Y/%m/%d %H:%M:%S")),
-            'body': "LOG FILES ATTACHED FOR USER: %s" % user
+            'body': "LOG FILES ATTACHED FOR USER: %s, VERSION: " % (user, self.version)
         }
         files = [
             os.path.abspath(os.path.join(logDir,'debug.log')),
             os.path.abspath(os.path.join(logDir,'info.log')),
             os.path.abspath(os.path.join(logDir,'errors.log'))
             ]
-        print(files)
+        if os.path.exists(os.path.join(logDir,'debug.log.1')):
+            files.append(os.path.join(logDir,'debug.log.1'))
         api = Goog(self.credentials)
         api.send_message(msg,files=files)
 

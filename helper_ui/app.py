@@ -11,6 +11,8 @@ from selenium import webdriver
 from helper import helper
 from threading import Thread
 import upgrade
+from multiprocessing import Process
+import multiprocessing
 
 ROOT_DIR = os.path.join(os.path.dirname(__file__),"..")
 bundled = False
@@ -43,11 +45,11 @@ class HelperUI:
         self.app.add_url_rule("/install_update",view_func=self.install_update, methods=['POST'])
         self.app.add_url_rule("/install_poll",view_func=self.install_poll, methods=['GET'])
         self.last_updated = datetime.datetime.now().timestamp()
-        self.helper = helper.Helper()
+        self.helper = helper.Helper(version=self.version)
         self.upgrade = upgrade.Upgrade()
         self._restarting = False
         if bundled:
-            Thread(target=self.upgrade.check_for_update,kwargs={'callback':self.set_update}).start()
+            Process(target=self.upgrade.check_for_update,kwargs={'callback':self.set_update}).start()
 
     def set_driver(self,driver):
         log.debug("HelperUI - driver set")
@@ -131,7 +133,7 @@ class HelperUI:
         period = reqData['period']
         accounts = reqData['accounts']
         self.helper.set_accounts(accounts)
-        Thread(target=helper.StartHelper, args=(self.helper,None,period)).start()
+        Process(target=helper.StartHelper, args=(self.helper,None,period)).start()
         return jsonify({'status':'Running'})
 
     def start(self):
@@ -142,7 +144,11 @@ class HelperUI:
         status = self.helper.set_accounts(reqData['accounts'])
         #status = self.helper.google_login()
         if status=='complete':
-            Thread(target=helper.StartHelper, args=(self.helper,None,reqData['period'])).start()
+            multiprocessing.current_process().daemon = False
+            log.debug("Starting Helper process")
+            p = Process(target=helper.StartHelper, args=(self.helper,None,reqData['period']), daemon=True)
+            log.debug("Helper process daemonic: " + str(p.daemon))
+            p.start()
             self.status = "Running"
             return jsonify({'status':'Running'})
         else:
@@ -180,12 +186,11 @@ class HelperUI:
             resp['added_google_accounts'] = [self.new_account]
             del self.new_account
         if self.update:
-            print(self.update)
             resp['available_update'] = self.upgrade.format_version(self.update.latest)
         return jsonify(resp)
 
     def install_update(self):
-        Thread(target=self.upgrade.install,kwargs={'update':self.update, 'callback': self.pre_restart}).start()
+        Process(target=self.upgrade.install,kwargs={'update':self.update, 'callback': self.pre_restart}).start()
         return jsonify({'installing':True})
 
     def complete_auth(self):
@@ -225,7 +230,7 @@ class HelperUI:
         return jsonify(resp)
 
     def run(self):
-        self.app.run(debug=True)
+        self.app.run(debug=True, use_reloader=False)
 
     def get_manager(self):
         return Manager(self.app)

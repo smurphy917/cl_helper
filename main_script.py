@@ -1,46 +1,45 @@
-import sys
-import os
+import sys, os, logging
 import main, init_config, upgrade
-from threading import Thread
-import logging
-import logging.config
-import json
-import time
 import traceback as tb
-
-bundled = False
-if getattr(sys, 'frozen', False):
-    bundled = True
+import multiprocessing
+from multiprocessing import Process
+import psutil
 
 init_config.init()
-#if bundled:
-#    upgrade.upgrade()
 
 log = logging.getLogger('main_script')
 log.info("main_script Initialized")
 
-def run_main(args=None):
-    log.info('Starting main_script...')
-    sys.argv = [sys.argv[0] if len(sys.argv) else ''] + ['runserver'] + sys.argv[2:]
-    t = Thread(target=main.manager.run)
-    t.daemon = True
-    log.info('Starting server thread...')
-    t.start()
-    log.info('Starting client...')
-    main.Application.open_page()
-    log.info('Closing...')
-    try:
-        if not main.Application.restarting():
-            sys.exit(0)
-        else:
-            log.debug("starting restart waiting loop...")
-            while 1:
-                time.sleep(10)
-    except SystemExit:
-        pass
-    except:
-        log.debug("Error condition exit.")
-        log.error(tb.format_exc())
-        raise
+def pkill(pid):
+    #recursively kill the whole damn family
+    p = psutil.Process(pid)
+    for child in p.children():
+        pkill(child.pid)
+    p.terminate()
 
-run_main()
+def run_main(args=None):
+    #init current Process
+    multiprocessing.freeze_support()
+    #create server
+    log.debug("Create server")
+    server = main.CLServer(version=upgrade.APP_VERSION)
+    #create client
+    log.debug("Create client")
+    client = main.CLClient(server=server)
+    #start server
+    log.debug("Create and start server process")
+    p_server = Process(target=server.run)
+    p_server.name="CL Server"
+    p_server.start()
+    #start client
+    log.debug("Create and start client process")
+    p_client = Process(target=client.start)
+    p_client.name="CL Client"
+    p_client.start()
+    #join client
+    log.debug("Join processes")
+    p_client.join()
+    pkill(p_server.pid)    
+
+if __name__ == "__main__":
+    run_main()
