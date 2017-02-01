@@ -52,10 +52,9 @@ CL_BASE = "http://accounts.craigslist.org"
 
 class Helper:
 
-    def __init__(self,ui_driver=None,login=None, version=None):
+    def __init__(self,login=None, version=None):
         self.status = 'Initialized'
         self.config = json.load(open(os.path.join(os.path.dirname(__file__),'config/cl_config.json')))
-        self.ui_driver = ui_driver
         self.credentials = None
         self.data_path = os.path.join(DATA_DIR,"posts.json")
         self.pending_posts = []

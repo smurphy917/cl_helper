@@ -17,18 +17,18 @@ def pkill(pid):
         pkill(child.pid)
     p.terminate()
 
-def start_server(queue):
+def start_server():
     server = main.CLServer(version=upgrade.APP_VERSION)
+    #queue.put(server)
     server.run()
-    queue.put(server)
 
-def start_server(queue):
-    client = main.CLClient(server=queue.get())
+def start_client():
+    client = main.CLClient()
     client.start()
 
 def run_main(args=None):
     #init current Process
-    q = Queue()
+    #q = Queue()
     multiprocessing.freeze_support()
     #create server
     #log.debug("Create server")
@@ -38,12 +38,12 @@ def run_main(args=None):
     #client = main.CLClient(server=server)
     #start server
     log.debug("Create and start server process")
-    p_server = Process(target=start_server, args=(q,))
+    p_server = Process(target=start_server)
     p_server.name="CL Server"
     p_server.start()
     #start client
     log.debug("Create and start client process")
-    p_client = Process(target=start_client, args=(q,))
+    p_client = Process(target=start_client)
     p_client.name="CL Client"
     p_client.start()
     #join client

@@ -23,8 +23,7 @@ log = logging.getLogger("helper_ui")
 
 class HelperUI:
 
-    def __init__(self,driver=None, version=None):
-        self.driver = driver
+    def __init__(self, version=None):
         self.status = "Not Started"
         self.version = version
         self.update = None
@@ -49,11 +48,6 @@ class HelperUI:
         self._restarting = False
         if bundled:
             Process(target=self.upgrade.check_for_update,kwargs={'callback':self.set_update}).start()
-
-    def set_driver(self,driver):
-        log.debug("HelperUI - driver set")
-        self.driver = driver
-        log.debug(self.driver)
 
     def home(self):
         data = {
@@ -84,7 +78,7 @@ class HelperUI:
         pw = reqData['pw']
         google_account = reqData['google_account']
         if not hasattr(self,'helper'):
-            self.helper = helper.Helper(self.driver,login=(user,pw))
+            self.helper = helper.Helper(login=(user,pw))
         else:
             self.helper.set_login((user,pw))
         status = self.helper.google_login(account=google_account)
@@ -139,7 +133,7 @@ class HelperUI:
         log.info("requested: " + str(request))
         reqData = request.get_json()
         if not hasattr(self,'helper'):
-            self.helper = helper.Helper(self.driver)
+            self.helper = helper.Helper()
         status = self.helper.set_accounts(reqData['accounts'])
         #status = self.helper.google_login()
         if status=='complete':
@@ -243,7 +237,6 @@ class HelperUI:
     def pre_restart(self):
         #need this to prevent sys.exit during restart
         self._restarting = True
-        self.driver.quit()
 
     def install_poll(self):
         status, progress = self.upgrade.progress()

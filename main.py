@@ -31,16 +31,14 @@ class CLServer:
         self.app = HelperUI(version=version)
     def run(self):
         self.app.run()
-    def set_driver(self,driver):
-        self.app.set_driver(driver)
     def get_manager(self):
         return self.app.get_manager()
     def restarting(self):
         return self.app.restarting()
 
 class CLClient:
-    def __init__(self, server=None):
-        self.server = server
+    def __init__(self):
+        pass
     def start(self):
         self.open_page()
     def open_page(self):
@@ -54,7 +52,6 @@ class CLClient:
         log.debug("driver created")
         self.main_handle = self.driver.current_window_handle
         self.driver.implicitly_wait(0.1)
-        self.server.set_driver(self.driver)
         while self.driver_open():
             time.sleep(1)
         log.debug("Client closed")
