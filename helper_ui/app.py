@@ -1,7 +1,7 @@
 import sys
 from sys import platform
 from flask import Flask, request, make_response, render_template, jsonify
-from flask_script import Manager, Command
+#from flask_script import Manager, Command
 import os
 import datetime
 import json
@@ -9,7 +9,6 @@ import logging.config
 import time
 from selenium import webdriver
 from helper import helper
-from threading import Thread
 import upgrade
 from multiprocessing import Process
 import multiprocessing
@@ -144,11 +143,8 @@ class HelperUI:
         status = self.helper.set_accounts(reqData['accounts'])
         #status = self.helper.google_login()
         if status=='complete':
-            multiprocessing.current_process().daemon = False
             log.debug("Starting Helper process")
-            p = Process(target=helper.StartHelper, args=(self.helper,None,reqData['period']), daemon=True)
-            log.debug("Helper process daemonic: " + str(p.daemon))
-            p.start()
+            Process(target=helper.StartHelper, args=(self.helper,None,reqData['period']), daemon=True).start()
             self.status = "Running"
             return jsonify({'status':'Running'})
         else:
@@ -232,8 +228,8 @@ class HelperUI:
     def run(self):
         self.app.run(debug=True, use_reloader=False)
 
-    def get_manager(self):
-        return Manager(self.app)
+    #def get_manager(self):
+    #    return Manager(self.app)
     
     def submit_logs(self):
         self.helper.submit_logs()

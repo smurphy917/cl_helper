@@ -69,7 +69,3 @@ class CLClient:
         except Exception as e:
             self.driver.quit()
             return False
-        
-
-if __name__ == "__main__":
-    manager.run()
