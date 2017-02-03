@@ -585,7 +585,8 @@ class Helper:
         api = Goog(self.credentials)
         api.send_message(msg,files=files)
 
-def StartHelper(helper=None,login=None, minutes=6):
+def StartHelper(q,login=None, minutes=6):
+    helper = q.get()
     if not helper:
         helper = Helper(login)
     helper.renew()

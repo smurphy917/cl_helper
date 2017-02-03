@@ -10,7 +10,7 @@ import time
 from selenium import webdriver
 from helper import helper
 import upgrade
-from multiprocessing import Process
+from multiprocessing import Process, Queue
 import multiprocessing
 
 ROOT_DIR = os.path.join(os.path.dirname(__file__),"..")
@@ -77,10 +77,7 @@ class HelperUI:
         user = reqData['user']
         pw = reqData['pw']
         google_account = reqData['google_account']
-        if not hasattr(self,'helper'):
-            self.helper = helper.Helper(login=(user,pw))
-        else:
-            self.helper.set_login((user,pw))
+        self.helper.set_login((user,pw))
         status = self.helper.google_login(account=google_account)
         if status=='complete':
             #Thread(target=helper.StartHelper, args=(self.helper,None,period)).start()
@@ -121,24 +118,25 @@ class HelperUI:
         self.internal_status = "NEW_GOOGLE_ACCOUNT"
         return jsonify({'status': 'Pending Google Authorization'})
 
-    def start_new(self):
-        reqData = request.get_json()
-        period = reqData['period']
-        accounts = reqData['accounts']
-        self.helper.set_accounts(accounts)
-        Process(target=helper.StartHelper, args=(self.helper,None,period)).start()
-        return jsonify({'status':'Running'})
+
+    #def start_new(self):
+    #    reqData = request.get_json()
+    #    period = reqData['period']
+    #    accounts = reqData['accounts']
+    #    self.helper.set_accounts(accounts)
+    #    Process(target=helper.StartHelper, args=(self.helper,None,period)).start()
+    #    return jsonify({'status':'Running'})
 
     def start(self):
         log.info("requested: " + str(request))
         reqData = request.get_json()
-        if not hasattr(self,'helper'):
-            self.helper = helper.Helper()
         status = self.helper.set_accounts(reqData['accounts'])
         #status = self.helper.google_login()
         if status=='complete':
             log.debug("Starting Helper process")
-            Process(target=helper.StartHelper, args=(self.helper,None,reqData['period']), daemon=True).start()
+            q = Queue()
+            q.put(self.helper)
+            Process(target=helper.StartHelper, args=(q,None,reqData['period'])).start()
             self.status = "Running"
             return jsonify({'status':'Running'})
         else:
@@ -180,7 +178,7 @@ class HelperUI:
         return jsonify(resp)
 
     def install_update(self):
-        Process(target=self.upgrade.install,kwargs={'update':self.update, 'callback': self.pre_restart}).start()
+        Process(target=self.upgrade.install,kwargs={'update':self.update}).start()
         return jsonify({'installing':True})
 
     def complete_auth(self):
