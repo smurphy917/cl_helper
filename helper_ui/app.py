@@ -10,7 +10,7 @@ import time
 from selenium import webdriver
 from helper import helper
 import upgrade
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, Pipe
 import multiprocessing
 
 ROOT_DIR = os.path.join(os.path.dirname(__file__),"..")
@@ -46,8 +46,20 @@ class HelperUI:
         self.helper = helper.Helper(version=self.version)
         self.upgrade = upgrade.Upgrade()
         self._restarting = False
-        if bundled:
-            Process(target=self.upgrade.check_for_update,kwargs={'callback':self.set_update}).start()
+        child_conn, self.connection = Pipe()
+        Process(target=self.upgrade.check_for_update,kwargs={'callback':'set_update','connection':child_conn}, name='CLVCheck').start()
+        Process(target=self.connection_poll, name='CLCPoll').start()
+
+    def connection_poll(self):
+        while 1:
+            if self.connection.poll(1):
+                p = self.connection.recv()
+                m = getattr(self,p['method'])
+                args = p['args'] if 'args' in p else []
+                kwargs = p['kwargs'] if 'kwargs' in p else {}
+                m(*args,**kwargs)
+                return
+                
 
     def home(self):
         data = {
@@ -70,6 +82,7 @@ class HelperUI:
         return render_template('home.html',data=data)
 
     def set_update(self,update):
+        log.debug("Setting update")
         self.update = update
 
     def add_account(self):

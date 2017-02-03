@@ -40,11 +40,12 @@ class Upgrade():
                 callback()
             update.extract_restart()
 
-    def check_for_update(self, channel=CHANNEL, callback=None):
+    def check_for_update(self, channel=CHANNEL, callback=None, connection=None):
         self.client.refresh()
         update = self.client.update_check(APP_NAME,APP_VERSION,channel=channel)
-        if callback:
-            callback(update)
+        if connection:
+            p = {'method':callback,'args':[update]}
+            connection.send(p)
             return
         return update
 
