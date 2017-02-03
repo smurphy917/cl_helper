@@ -4,11 +4,13 @@ import traceback as tb
 import multiprocessing
 from multiprocessing import Process, Queue
 import psutil
+import setproctitle
 
 init_config.init()
 
 log = logging.getLogger('main_script')
 log.info("main_script Initialized")
+setproctitle.setproctitle("CLMain")
 
 def pkill(pid):
     #recursively kill the whole damn family
@@ -19,11 +21,13 @@ def pkill(pid):
 
 def start_server():
     server = main.CLServer(version=upgrade.APP_VERSION)
+    setproctitle.setproctitle("CLServer")
     #queue.put(server)
     server.run()
 
 def start_client():
     client = main.CLClient()
+    setproctitle.setproctitle("CLClient")
     client.start()
 
 def run_main(args=None):

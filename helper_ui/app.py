@@ -218,7 +218,7 @@ class HelperUI:
         return jsonify(resp)
 
     def run(self):
-        self.app.run(debug=True, use_reloader=False)
+        self.app.run(debug=False)
 
     #def get_manager(self):
     #    return Manager(self.app)

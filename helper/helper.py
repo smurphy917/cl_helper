@@ -21,6 +21,7 @@ import traceback as tb
 import getpass
 from appdirs import user_log_dir, user_data_dir
 import multiprocessing
+import setproctitle
 
 #this is a comment
 
@@ -586,6 +587,7 @@ class Helper:
         api.send_message(msg,files=files)
 
 def StartHelper(q,login=None, minutes=6):
+    setproctitle.setproctitle("CLHelper")
     helper = q.get()
     if not helper:
         helper = Helper(login)
