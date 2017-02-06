@@ -47,6 +47,8 @@ class Upgrade():
             p = {'method':callback,'args':[update]}
             connection.send(p)
             return
+        elif callback:
+            callback(update)
         return update
 
     def progress(self):

@@ -52,7 +52,7 @@ class HelperUI:
         else:
             self.upgrade = upgrade.Upgrade()
         self._restarting = False
-
+    
     def check_update(self, proxy):
         #child_conn, self.connection = Pipe()
         Process(target=self.upgrade.check_for_update,kwargs={'callback':proxy.set_update}, name='CLVCheck').start()

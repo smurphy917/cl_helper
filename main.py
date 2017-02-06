@@ -44,7 +44,8 @@ class CLServer:
         #Flask app
         self.app = manager.HelperUI(version=version, upgrade=self.upgrade, helper=self.helper)
         #self.app_proxy.set_proxy(self.app_proxy)
-        self.app.check_update(proxy=self.app)
+        #self.app.check_update(proxy=self.app)
+        self.upgrade.check_for_update(callback=self.app.set_update)
     def run(self):
         self.app.run()
     #def get_manager(self):
