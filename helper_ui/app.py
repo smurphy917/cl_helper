@@ -23,7 +23,7 @@ log = logging.getLogger("helper_ui")
 
 class HelperUI:
 
-    def __init__(self, version=None):
+    def __init__(self, version=None, helper=None, upgrade=None):
         self.status = "Not Started"
         self.version = version
         self.update = None
@@ -43,12 +43,20 @@ class HelperUI:
         self.app.add_url_rule("/install_update",view_func=self.install_update, methods=['POST'])
         self.app.add_url_rule("/install_poll",view_func=self.install_poll, methods=['GET'])
         self.last_updated = datetime.datetime.now().timestamp()
-        self.helper = helper.Helper(version=self.version)
-        self.upgrade = upgrade.Upgrade()
+        if helper:
+            self.helper = helper
+        else:
+            self.helper = helper.Helper(version=self.version)
+        if upgrade:
+            self.upgrade = upgrade
+        else:
+            self.upgrade = upgrade.Upgrade()
         self._restarting = False
-        child_conn, self.connection = Pipe()
-        Process(target=self.upgrade.check_for_update,kwargs={'callback':'set_update','connection':child_conn}, name='CLVCheck').start()
-        Process(target=self.connection_poll, name='CLCPoll').start()
+
+    def check_update(self, proxy):
+        #child_conn, self.connection = Pipe()
+        Process(target=self.upgrade.check_for_update,kwargs={'callback':proxy.set_update}, name='CLVCheck').start()
+        #Process(target=self.connection_poll, name='CLCPoll').start()
 
     def connection_poll(self):
         while 1:
@@ -259,7 +267,3 @@ class HelperUI:
     def restarting(self):
         log.debug("Is restarting: " + str(self._restarting))
         return self._restarting
-
-        
-
-    

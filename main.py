@@ -1,5 +1,5 @@
 from sys import platform
-from helper_ui.app import HelperUI
+import helper_ui.app as app
 import selenium
 from selenium import webdriver
 from threading import Thread
@@ -10,6 +10,9 @@ import json
 import sys
 import traceback as tb
 import subprocess
+from multiprocessing.managers import BaseManager
+import upgrade
+from helper import helper
 
 DESIRED_CAPABILITIES = {'chromeOptions': {'args': ['--app=http://127.0.0.1:5000']}}
 CHROMEDRIVER_PATH = ""
@@ -25,14 +28,27 @@ elif platform == 'win32':
 
 log = logging.getLogger("main")
 
+class CLManager(BaseManager):
+    pass
+
 class CLServer:
     def __init__(self,version=None):
         log.debug("Initializing server")
-        self.app = HelperUI(version=version)
+        CLManager.register('HelperUI',app.HelperUI)
+        CLManager.register('Upgrade',upgrade.Upgrade)
+        CLManager.register('Helper',helper.Helper)
+        manager = CLManager()
+        manager.start()
+        self.upgrade = manager.Upgrade()
+        self.helper = manager.Helper()
+        #Flask app
+        self.app = manager.HelperUI(version=version, upgrade=self.upgrade, helper=self.helper)
+        #self.app_proxy.set_proxy(self.app_proxy)
+        self.app.check_update(proxy=self.app)
     def run(self):
         self.app.run()
-    def get_manager(self):
-        return self.app.get_manager()
+    #def get_manager(self):
+    #    return self.app_proxy.get_manager()
     def restarting(self):
         return self.app.restarting()
 
