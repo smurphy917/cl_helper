@@ -9,7 +9,7 @@ import logging.config
 import time
 from selenium import webdriver
 from helper import helper
-import upgrade
+import upgrade as up
 from multiprocessing import Process, Queue, Pipe
 import multiprocessing
 
@@ -50,14 +50,10 @@ class HelperUI:
         if upgrade:
             self.upgrade = upgrade
         else:
-            self.upgrade = upgrade.Upgrade()
+            self.upgrade = up.Upgrade()
         self._restarting = False
-    
-    def check_update(self, proxy):
-        #child_conn, self.connection = Pipe()
-        Process(target=self.upgrade.check_for_update,kwargs={'callback':proxy.set_update}, name='CLVCheck').start()
-        #Process(target=self.connection_poll, name='CLCPoll').start()
-
+        
+    '''
     def connection_poll(self):
         while 1:
             if self.connection.poll(1):
@@ -67,7 +63,7 @@ class HelperUI:
                 kwargs = p['kwargs'] if 'kwargs' in p else {}
                 m(*args,**kwargs)
                 return
-                
+    '''         
 
     def home(self):
         data = {

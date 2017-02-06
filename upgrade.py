@@ -5,8 +5,10 @@ from pyupdater.client.updates import _gen_user_friendly_version as pyu_format_ve
 from dsdev_utils.helpers import Version as pyu_Version
 
 ROOT_DIR = os.path.dirname(__file__)
+BUNDLED = False
 if getattr(sys, 'frozen', False):
     ROOT_DIR = sys._MEIPASS
+    BUNDLED = True
 
 CHANNEL = "alpha"
 APP_NAME = 'CL Helper'
@@ -34,6 +36,11 @@ class Upgrade():
             self.install(app_update)
 
     def install(self,update=None, callback=None):
+        if not BUNDLED:
+            log.debug("Running non-bundled. Not installing updated version.")
+            if callback is not None:
+                callback()
+            return
         downloaded = update.download()
         if downloaded:
             if callback is not None:
