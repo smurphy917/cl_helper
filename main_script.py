@@ -75,7 +75,7 @@ class CLRootMain:
         self.manager = CLManager()
         self.manager.start()
 
-        self.upgrade = self.manager.Upgrade(connection=server_conn)
+        self.upgrade = self.manager.Upgrade(connection=upgrade_conn)
         self.helper = self.manager.Helper()
         self.app = self.manager.HelperUI(
             version=upgrade.APP_VERSION,
@@ -100,7 +100,7 @@ class CLRootMain:
             self.pkill(child.pid)
         try:
             p.terminate()
-        except psutil.NoSuckProcess:
+        except psutil.NoSuchProcess:
             return
     
     '''

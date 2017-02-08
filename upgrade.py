@@ -57,7 +57,7 @@ class Upgrade():
         if downloaded:
             if callback is not None:
                 callback()
-            Process(target=update.extract_restart)
+            Process(target=update.extract_restart, name='CLInstall').start()
             self.conn.send({
                 'call_method':{
                     'method':'close',
