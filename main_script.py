@@ -17,6 +17,7 @@ init_config.init()
 log = logging.getLogger('main_script')
 log.info("main_script Initialized")
 setproctitle.setproctitle("CLMain")
+multiprocessing.freeze_support()
 
 def RebuildProxyNoReferent(func, token, serializer, kwds):
     #http://stackoverflow.com/questions/29788809/python-how-to-pass-an-autoproxy-object

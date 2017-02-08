@@ -9,10 +9,7 @@ import logging
 import json
 import sys
 import traceback as tb
-import subprocess
-from multiprocessing.managers import BaseManager
 from multiprocessing import Process
-from multiprocessing import Pipe
 import upgrade
 from helper import helper
 import setproctitle
@@ -31,9 +28,6 @@ elif platform == 'win32':
 
 log = logging.getLogger("main")
 
-class CLManager(BaseManager):
-    pass
-
 class CLServer:
     def __init__(self,app=None,upgrade=None, connection=None):
         log.debug("Initializing server")
@@ -49,8 +43,7 @@ class CLServer:
         log.debug("CLServer run()")
         Process(name="CLHelperUI", target=self.app.run).start()
         update = self.upgrade.check_for_update()
-        log.debug("self.app: %s" % repr(self.app))
-        self.app._callmethod('set_update',(update,))
+        self.app.set_update(update)
     @staticmethod
     def connection_monitor(connection, app, upgrade):
         while 1:
