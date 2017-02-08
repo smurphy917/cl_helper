@@ -57,7 +57,14 @@ class Upgrade():
         if downloaded:
             if callback is not None:
                 callback()
-            update.extract_restart()
+            Process(target=update.extract_restart)
+            self.conn.send({
+                'call_method':{
+                    'method':'close',
+                    'args':[],
+                    'kwargs':{}
+                }
+            })
 
     def check_for_update(self, channel=CHANNEL, callback=None, connection=None):
         self.client.refresh()
