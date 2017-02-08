@@ -2,7 +2,7 @@ import sys, os, logging
 import main, init_config, upgrade
 import traceback as tb
 import multiprocessing
-from multiprocessing import Process, Queue, Pipe, current_process
+from multiprocessing import Process, Queue, Pipe, current_process, freeze_support
 from multiprocessing.managers import BaseManager, BaseProxy, AutoProxy, listener_client, dispatch, MakeProxyType
 from multiprocessing.connection import wait
 import psutil
@@ -17,7 +17,6 @@ init_config.init()
 log = logging.getLogger('main_script')
 log.info("main_script Initialized")
 setproctitle.setproctitle("CLMain")
-multiprocessing.freeze_support()
 
 def RebuildProxyNoReferent(func, token, serializer, kwds):
     #http://stackoverflow.com/questions/29788809/python-how-to-pass-an-autoproxy-object
@@ -41,7 +40,6 @@ def AutoCLProxy(token, serializer, manager=None, authkey=None, exposed=None, inc
         ret = (RebuildProxyNoReferent,) + ret[1:]
         return ret
     proxy.__reduce__ = MethodType(reduce_method,proxy)
-    log.debug(proxy._exposed_)
     return proxy
 
 class CLManager(BaseManager):
@@ -54,6 +52,8 @@ class CLManager(BaseManager):
 class CLRootMain:
 
     def __init__(self):        
+        log.debug("CLRootMain.__init__()")
+
         CLManager.register('CLServer',main.CLServer)
         CLManager.register('CLClient',main.CLClient)
         CLManager.register('HelperUI',HelperUI)
@@ -130,7 +130,6 @@ class CLRootMain:
 
     def run(self):
         log.debug("main_script.CLRootMain.run()")
-        log.debug(self.server)
         #Process(name='CLServer',target=self.server.run).start()
         #Process(name='CLClient',target=self.client.start).start()
         Process(name='CLServer', target=self.server.run).start()
@@ -188,5 +187,6 @@ class CLRootMain:
     '''
 
 if __name__ == "__main__":
+    freeze_support()
     main = CLRootMain()
     main.run()
