@@ -54,6 +54,7 @@ CL_BASE = "http://accounts.craigslist.org"
 class Helper:
 
     def __init__(self,login=None, version=None):
+        setproctitle.setproctitle("CLHelper")
         self.status = 'Initialized'
         self.config = json.load(open(os.path.join(os.path.dirname(__file__),'config/cl_config.json')))
         self.credentials = None
@@ -181,7 +182,7 @@ class Helper:
             return
         #print("helper.renew running...")
         #driver = webdriver.Chrome(CHROMEDRIVER_PATH, desired_capabilities={'chromeOptions':{'args':['--no-startup-window']}})
-        log.debug("Renew running in " + ("daemonic" if multiprocessing.current_process().daemon else "non-daemonic") + " process")
+        #log.debug("Renew running in " + ("daemonic" if multiprocessing.current_process().daemon else "non-daemonic") + " process")
         driver = webdriver.PhantomJS(executable_path=PHANTOMJS_PATH)
         if len(self.pending_posts):
             for post in self.pending_posts:
@@ -557,6 +558,9 @@ class Helper:
                 return
         self.add_post(post,posts)
 
+    def get_status(self):
+        return self.status
+
     def submit_logs(self):
         log.info("submitting logs...")
         logTime = datetime.datetime.now()
@@ -587,7 +591,6 @@ class Helper:
         api.send_message(msg,files=files)
 
 def StartHelper(q,login=None, minutes=6):
-    setproctitle.setproctitle("CLHelper")
     helper = q.get()
     if not helper:
         helper = Helper(login)

@@ -1,5 +1,5 @@
 from sys import platform
-import helper_ui.app as app
+#import helper_ui.app as app
 import selenium
 from selenium import webdriver
 from threading import Thread
@@ -11,8 +11,11 @@ import sys
 import traceback as tb
 import subprocess
 from multiprocessing.managers import BaseManager
+from multiprocessing import Process
+from multiprocessing import Pipe
 import upgrade
 from helper import helper
+import setproctitle
 
 DESIRED_CAPABILITIES = {'chromeOptions': {'args': ['--app=http://127.0.0.1:5000']}}
 CHROMEDRIVER_PATH = ""
@@ -32,31 +35,41 @@ class CLManager(BaseManager):
     pass
 
 class CLServer:
-    def __init__(self,version=None):
+    def __init__(self,app=None,upgrade=None, connection=None):
         log.debug("Initializing server")
-        CLManager.register('HelperUI',app.HelperUI)
-        CLManager.register('Upgrade',upgrade.Upgrade)
-        CLManager.register('Helper',helper.Helper)
-        manager = CLManager()
-        manager.start()
-        self.upgrade = manager.Upgrade()
-        self.helper = manager.Helper()
-        #Flask app
-        self.app = manager.HelperUI(version=version, upgrade=self.upgrade, helper=self.helper)
-        #self.app_proxy.set_proxy(self.app_proxy)
-        #self.app.check_update(proxy=self.app)
-        self.upgrade.check_for_update(callback=self.app.set_update)
+        log.debug(repr(app))
+        log.debug(repr(upgrade))
+        self.parent_conn = connection
+        log.debug("CLServer app: %s" % repr(app))
+        self.app = app
+        self.upgrade = upgrade
+        
     def run(self):
-        self.app.run()
+        setproctitle.setproctitle("CLServer")
+        log.debug("CLServer run()")
+        Process(name="CLHelperUI", target=self.app.run).start()
+        update = self.upgrade.check_for_update()
+        log.debug("self.app: %s" % repr(self.app))
+        self.app._callmethod('set_update',(update,))
+    @staticmethod
+    def connection_monitor(connection, app, upgrade):
+        while 1:
+            if connection.poll(1):
+                p = connection.recv()
+                if p['message'] == 'install_upgrade':
+                    upgrade.install(app.update)
+                    connection.send({'message':'install_complete'})
     #def get_manager(self):
     #    return self.app_proxy.get_manager()
     def restarting(self):
         return self.app.restarting()
 
 class CLClient:
-    def __init__(self):
-        pass
+    def __init__(self, connection=None):
+        if connection is not None:
+            self.conn = connection
     def start(self):
+        setproctitle.setproctitle("CLClient")
         self.open_page()
     def open_page(self):
         log.debug("Opening client")
@@ -70,8 +83,13 @@ class CLClient:
         self.main_handle = self.driver.current_window_handle
         self.driver.implicitly_wait(0.1)
         while self.driver_open():
-            time.sleep(1)
-        log.debug("Client closed")
+            if self.conn.poll(1):
+                p = self.conn.recv()
+                if p == 'KILL':
+                    self._kill = True
+                    break
+        log.debug("Client closing")
+        self.close()
         return
     def driver_open(self):
         try:
@@ -83,3 +101,13 @@ class CLClient:
         except Exception as e:
             self.driver.quit()
             return False
+    def close(self):
+        if not getattr(self,'_kill',False):
+            self.conn.send({
+                'call_method':{
+                    'method': 'close',
+                    'args': [],
+                    'kwargs': {}
+                }
+            })
+        self.driver.quit()

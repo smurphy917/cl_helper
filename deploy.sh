@@ -1,6 +1,8 @@
 #!/bin/sh
-export PYU_AWS_ID='AKIAIHVLDAEIBMV5WIQQ'
-export PYU_AWS_SECRET='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'
+while IFS='=' read var val
+do
+    export "$var"="$val"
+done <<< "$(cat id.s3)"
 CWD=$PWD
 pushd `dirname $0` > /dev/null
 SCRIPT_DIR=`pwd`

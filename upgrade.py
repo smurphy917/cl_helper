@@ -3,6 +3,7 @@ from pyupdater.client import Client
 import os, sys, logging
 from pyupdater.client.updates import _gen_user_friendly_version as pyu_format_version
 from dsdev_utils.helpers import Version as pyu_Version
+from multiprocessing import current_process
 
 ROOT_DIR = os.path.dirname(__file__)
 BUNDLED = False
@@ -22,13 +23,14 @@ log = logging.getLogger()
 
 class Upgrade():
 
-    def __init__(self):
+    def __init__(self, connection=None):
         log.debug("Upgrade initializing")
         self.status = ""
         self.totalProgress = 0
         self.client = Client(ClientConfig())
         self.client.add_progress_hook(self.progress_handler)
-        log.debug("Upgrade initialized")
+        if connection is not None:
+            self.conn = connection
 
     def auto_update(self, channel=CHANNEL):
         app_update = self.check_for_update(channel=channel)
@@ -38,8 +40,18 @@ class Upgrade():
     def install(self,update=None, callback=None):
         if not BUNDLED:
             log.debug("Running non-bundled. Not installing updated version.")
+            self.status, self.totalProgress = ("Complete", 100)
             if callback is not None:
                 callback()
+            #JUST TESTING
+            log.debug(current_process())
+            self.conn.send({
+                'call_method':{
+                    'method':'close',
+                    'args':[],
+                    'kwargs':{}
+                }
+            })
             return
         downloaded = update.download()
         if downloaded:

@@ -9,9 +9,11 @@ import logging.config
 import time
 from selenium import webdriver
 from helper import helper
-import upgrade as up
-from multiprocessing import Process, Queue, Pipe
+import upgrade
+from multiprocessing import Process, Queue, Pipe, current_process
 import multiprocessing
+
+up = upgrade.Upgrade
 
 ROOT_DIR = os.path.join(os.path.dirname(__file__),"..")
 bundled = False
@@ -23,7 +25,7 @@ log = logging.getLogger("helper_ui")
 
 class HelperUI:
 
-    def __init__(self, version=None, helper=None, upgrade=None):
+    def __init__(self, version=None, upgrade=None, helper=None, connection=None):
         self.status = "Not Started"
         self.version = version
         self.update = None
@@ -47,12 +49,15 @@ class HelperUI:
             self.helper = helper
         else:
             self.helper = helper.Helper(version=self.version)
+        
         if upgrade:
             self.upgrade = upgrade
         else:
             self.upgrade = up.Upgrade()
+        if connection:
+            self.parent_conn = connection
         self._restarting = False
-        
+
     '''
     def connection_poll(self):
         while 1:
@@ -86,8 +91,9 @@ class HelperUI:
         return render_template('home.html',data=data)
 
     def set_update(self,update):
-        log.debug("Setting update")
+        log.debug("Setting update on: %s, for: %s, to: %s" % (repr(self),current_process(),repr(update)))
         self.update = update
+        log.debug("Update set.")
 
     def add_account(self):
         reqData = request.get_json()
@@ -153,7 +159,7 @@ class HelperUI:
             log.debug("Starting Helper process")
             q = Queue()
             q.put(self.helper)
-            Process(target=helper.StartHelper, args=(q,None,reqData['period'])).start()
+            Process(target=helper.StartHelper, args=(q,None,reqData['period']), name="CLHelper", daemon=True).start()
             self.status = "Running"
             return jsonify({'status':'Running'})
         else:
@@ -167,7 +173,7 @@ class HelperUI:
         if self.last_updated:
             last_updated = self.last_updated
         if hasattr(self,'helper'):
-            if self.helper.status == 'Complete':
+            if self.helper.get_status() == 'Complete':
                 self.status = 'Complete'
             data = self.helper.get_posts(include_time=True)
         else:
@@ -190,12 +196,14 @@ class HelperUI:
             resp['added_accounts'] = [self.new_account]
             resp['added_google_accounts'] = [self.new_account]
             del self.new_account
-        if self.update:
-            resp['available_update'] = self.upgrade.format_version(self.update.latest)
+        log.debug("Retrieving update for: %s, in: %s, as: %s" % (repr(self), current_process(), repr(self.update)))
+        if self.update is not None:
+            resp['available_update'] = up.format_version(self.update.latest)
         return jsonify(resp)
 
     def install_update(self):
-        Process(target=self.upgrade.install,kwargs={'update':self.update}).start()
+        #self.parent_conn.send({'message':'install'})
+        Process(target=self.upgrade.install,kwargs={'update':self.update},name='CLUpdate').start()
         return jsonify({'installing':True})
 
     def complete_auth(self):
@@ -235,6 +243,7 @@ class HelperUI:
         return jsonify(resp)
 
     def run(self):
+        log.debug('Running: %s, on: %s' % (repr(self), current_process()))
         self.app.run(debug=False)
 
     #def get_manager(self):
@@ -246,12 +255,15 @@ class HelperUI:
 
     def meta(self):
         return jsonify({
-            'version': self.upgrade.format_version(self.version) if self.version else '-'
+            'version': up.format_version(self.version) if self.version else '-'
         })
 
     def pre_restart(self):
         #need this to prevent sys.exit during restart
         self._restarting = True
+
+    def set_upgrade_progress(self,progress):
+        self.upgrade_progress = upgrade_progress
 
     def install_poll(self):
         status, progress = self.upgrade.progress()

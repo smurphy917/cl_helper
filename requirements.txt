@@ -10,9 +10,10 @@ google-api-python-client>=1.5
 httplib2>=0.9
 python-dateutil>=2.6
 pytz>=2016.10
-#https://github.com/pyinstaller/pyinstaller/archive/develop.zip
-pyinstaller>=3.2.1
+https://github.com/pyinstaller/pyinstaller/archive/develop.zip
+#pyinstaller>=3.2.1
 pyupdater
+pyupdater[s3]
 oauth2client<4.0.0
 psutil
 setproctitle
