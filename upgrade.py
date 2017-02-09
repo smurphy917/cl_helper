@@ -21,43 +21,37 @@ log = logging.getLogger()
 #LIB_NAME = 'Github Repo'
 #LIB_VERSION = '0.1.0alpha4'
 
+class NoAvailableUpdate(Exception):
+    pass
+
 class Upgrade():
 
     def __init__(self, connection=None):
         log.debug("Upgrade initializing")
         self.status = ""
         self.totalProgress = 0
-        self.client = Client(ClientConfig())
-        self.client.add_progress_hook(self.progress_handler)
+        self._client = Client(ClientConfig())
+        self._client.add_progress_hook(self.progress_handler)
+        self._update = None
         if connection is not None:
             self.conn = connection
 
     def auto_update(self, channel=CHANNEL):
         app_update = self.check_for_update(channel=channel)
         if app_update:
-            self.install(app_update)
+            self.install()
 
-    def install(self,update=None, callback=None):
-        if not BUNDLED:
-            log.debug("Running non-bundled. Not installing updated version.")
-            self.status, self.totalProgress = ("Complete", 100)
-            if callback is not None:
-                callback()
-            #JUST TESTING
-            log.debug(current_process())
-            self.conn.send({
-                'call_method':{
-                    'method':'close',
-                    'args':[],
-                    'kwargs':{}
-                }
-            })
-            return
-        downloaded = update.download()
+    def install(self):
+        if self._update is None:
+            self.check_for_update()
+            if self._update is None:
+                raise NoAvailableUpdate("No update is available.")
+        downloaded = self._update.download()
         if downloaded:
-            if callback is not None:
-                callback()
-            Process(target=update.extract_restart, name='CLInstall').start()
+            if BUNDLED:
+                Process(target=self._update.extract_restart, name='CLInstall').start()
+            else:
+                log.debug("Running non-bundled. Update will not be installed.")
             self.conn.send({
                 'call_method':{
                     'method':'close',
@@ -66,16 +60,13 @@ class Upgrade():
                 }
             })
 
-    def check_for_update(self, channel=CHANNEL, callback=None, connection=None):
-        self.client.refresh()
-        update = self.client.update_check(APP_NAME,APP_VERSION,channel=channel)
-        if connection:
-            p = {'method':callback,'args':[update]}
-            connection.send(p)
-            return
-        elif callback:
-            callback(update)
-        return update
+    def check_for_update(self, channel=CHANNEL):
+        self._client.refresh()
+        self._update = self._client.update_check(APP_NAME,APP_VERSION,channel=channel)
+        return self._update
+
+    def get_update(self):
+        return self._update
 
     def progress(self):
         return (self.status, self.totalProgress)

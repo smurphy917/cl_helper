@@ -28,7 +28,6 @@ class HelperUI:
     def __init__(self, version=None, upgrade=None, helper=None, connection=None):
         self.status = "Not Started"
         self.version = version
-        self.update = None
         self.app = Flask(__name__)
         self.app.add_url_rule("/",view_func=self.home,methods=['GET'])
         self.app.add_url_rule("/start",view_func=self.start,methods=['POST'])
@@ -90,10 +89,10 @@ class HelperUI:
         }
         return render_template('home.html',data=data)
 
-    def set_update(self,update):
-        log.debug("Setting update on: %s, for: %s, to: %s" % (repr(self),current_process(),repr(update)))
-        self.update = update
-        log.debug("Update set.")
+    #def set_update(self,update):
+    #    log.debug("Setting update on: %s, for: %s, to: %s" % (repr(self),current_process(),repr(update)))
+    #    self.update = update
+    #    log.debug("Update set.")
 
     def add_account(self):
         reqData = request.get_json()
@@ -196,14 +195,14 @@ class HelperUI:
             resp['added_accounts'] = [self.new_account]
             resp['added_google_accounts'] = [self.new_account]
             del self.new_account
-        log.debug("Retrieving update for: %s, in: %s, as: %s" % (repr(self), current_process(), repr(self.update)))
-        if self.update is not None:
-            resp['available_update'] = up.format_version(self.update.latest)
+        #log.debug("Retrieving update for: %s, in: %s, as: %s" % (repr(self), current_process(), repr(self.update)))
+        if self.upgrade.get_update() is not None:
+            resp['available_update'] = up.format_version(self.upgrade.get_update().latest)
         return jsonify(resp)
 
     def install_update(self):
         #self.parent_conn.send({'message':'install'})
-        Process(target=self.upgrade.install,kwargs={'update':self.update},name='CLUpdate').start()
+        Process(target=self.upgrade.install,name='CLUpdate').start()
         return jsonify({'installing':True})
 
     def complete_auth(self):

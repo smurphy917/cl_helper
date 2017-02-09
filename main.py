@@ -43,7 +43,7 @@ class CLServer:
         log.debug("CLServer run()")
         Process(name="CLHelperUI", target=self.app.run).start()
         update = self.upgrade.check_for_update()
-        self.app.set_update(update)
+        #self.app.set_update(update)
     @staticmethod
     def connection_monitor(connection, app, upgrade):
         while 1:
