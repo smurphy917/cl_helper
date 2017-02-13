@@ -53,6 +53,7 @@ class HelperUI:
             self.upgrade = upgrade
         else:
             self.upgrade = up.Upgrade()
+        #log.debug("HelperUI.__init__() = self.upgrade: " + repr(self.upgrade))
         if connection:
             self.parent_conn = connection
         self._restarting = False
@@ -156,9 +157,9 @@ class HelperUI:
         #status = self.helper.google_login()
         if status=='complete':
             log.debug("Starting Helper process")
-            q = Queue()
-            q.put(self.helper)
-            Process(target=helper.StartHelper, args=(q,None,reqData['period']), name="CLHelper", daemon=True).start()
+            #q = Queue()
+            #q.put(self.helper)
+            Process(target=helper.StartHelper, args=(self.helper,None,reqData['period']), name="CLHelper", daemon=True).start()
             self.status = "Running"
             return jsonify({'status':'Running'})
         else:
@@ -202,20 +203,23 @@ class HelperUI:
 
     def install_update(self):
         #self.parent_conn.send({'message':'install'})
+        log.debug("Calling upgrade.install")
         Process(target=self.upgrade.install,name='CLUpdate').start()
         return jsonify({'installing':True})
 
     def complete_auth(self):
+        log.debug("app - complete_auth")
         access_code = request.args['code']
         new_google_account = self.helper.complete_auth(access_code)
         self.status = "Google Account Added Successfully"
         #self.status = "Running"
         #Thread(target=helper.StartHelper, args=(self.helper,)).start()
-        if self.internal_status == "NEW_CL_ACCOUNT":
-            self.new_account = new_google_account
-        elif self.internal_status == "NEW_GOOGLE_ACCOUNT":
-            self.new_google_account = new_google_account
-        self.internal_status = ""
+        if hasattr(self,'internal_status'):
+            if self.internal_status == "NEW_CL_ACCOUNT":
+                self.new_account = new_google_account
+            elif self.internal_status == "NEW_GOOGLE_ACCOUNT":
+                self.new_google_account = new_google_account
+            self.internal_status = ""
         return make_response(("complete",200,{}))
 
     def get_users(self):
@@ -265,7 +269,9 @@ class HelperUI:
         self.upgrade_progress = upgrade_progress
 
     def install_poll(self):
+        #log.debug("HelperUI.install_poll() self.upgrade: %s" % repr(self.upgrade))
         status, progress = self.upgrade.progress()
+        #log.debug("Install progress: %s" % progress)
         return jsonify({
             'install_progress': progress,
             'status': status

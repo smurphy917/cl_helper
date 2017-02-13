@@ -1,4 +1,5 @@
 # -*- mode: python -*-
+import os, inspect, pyupdater
 
 block_cipher = None
 
@@ -11,12 +12,12 @@ data_files=[
     ('config','config')
 ]
 
-a = Analysis(['C:\\Users\\IEUser\\Documents\\workspace\\cl_helper\\main_script.py'],
-             pathex=['C:\\Users\\IEUser\\Documents\\workspace\\cl_helper', 'C:\\Users\\IEUser\\Documents\\workspace\\cl_helper'],
+a = Analysis([os.path.join(os.path.dirname(inspect.stack()[0][1]),'main_script.py')],
+             pathex=[os.path.dirname(inspect.stack()[0][1])],
              binaries=[],
              datas=data_files,
              hiddenimports=[],
-             hookspath=['c:\\users\\ieuser\\appdata\\local\\programs\\python\\python35-32\\lib\\site-packages\\pyupdater\\hooks'],
+             hookspath=[os.path.join(os.path.dirname(pyupdater.__file__),'hooks')],
              runtime_hooks=[],
              excludes=['jinja2.asyncsupport', 'jinja2.asyncfilters'],
              win_no_prefer_redirects=False,

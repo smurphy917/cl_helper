@@ -13,6 +13,9 @@ from multiprocessing import Process
 import upgrade
 from helper import helper
 import setproctitle
+from appdirs import user_log_dir
+
+LOG_DIR = user_log_dir("CL Helper","s_murphy")
 
 DESIRED_CAPABILITIES = {'chromeOptions': {'args': ['--app=http://127.0.0.1:5000']}}
 CHROMEDRIVER_PATH = ""
@@ -44,6 +47,7 @@ class CLServer:
         Process(name="CLHelperUI", target=self.app.run).start()
         update = self.upgrade.check_for_update()
         #self.app.set_update(update)
+
     @staticmethod
     def connection_monitor(connection, app, upgrade):
         while 1:
@@ -68,7 +72,7 @@ class CLClient:
         log.debug("Opening client")
         log.debug("creating driver...")
         try:
-            self.driver = webdriver.Chrome(CHROMEDRIVER_PATH, desired_capabilities=DESIRED_CAPABILITIES)#, service_log_path=os.path.join(ROOT_DIR,"log","service_log.log"))
+            self.driver = webdriver.Chrome(CHROMEDRIVER_PATH, desired_capabilities=DESIRED_CAPABILITIES, service_log_path=os.path.join(LOG_DIR,"chr_debug.log"))
         except Exception as e:
             log.error(tb.format_exc())
             sys.exit(1)
@@ -77,9 +81,11 @@ class CLClient:
         self.driver.implicitly_wait(0.1)
         while self.driver_open():
             if self.conn.poll(1):
-                p = self.conn.recv()
+                try:
+                    p = self.conn.recv()
+                except (BrokenPipeError,EOFError):
+                    p = 'KILL'
                 if p == 'KILL':
-                    self._kill = True
                     break
         log.debug("Client closing")
         self.close()

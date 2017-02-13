@@ -324,14 +324,14 @@ function CLHelperViewModel() {
     this.pause = function(){
         var self = this;
         $.get("/pause",function(resp){
-            self.status = resp.status;
+            self.status(resp.status);
         })
     };
 
     this.resume = function(){
         var self = this;
         $.get("/resume",function(resp){
-            self.status = resp.status;
+            self.status(resp.status);
         })
     };
 

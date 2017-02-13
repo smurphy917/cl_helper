@@ -3,7 +3,8 @@ from pyupdater.client import Client
 import os, sys, logging
 from pyupdater.client.updates import _gen_user_friendly_version as pyu_format_version
 from dsdev_utils.helpers import Version as pyu_Version
-from multiprocessing import current_process
+from multiprocessing import current_process, Process
+from subprocess import Popen
 
 ROOT_DIR = os.path.dirname(__file__)
 BUNDLED = False
@@ -24,6 +25,10 @@ log = logging.getLogger()
 class NoAvailableUpdate(Exception):
     pass
 
+def test_restart():
+    log.debug("test_restart sys.argv: %s" % sys.argv)
+    Popen('python %s' % '-'.join(sys.argv))
+
 class Upgrade():
 
     def __init__(self, connection=None):
@@ -42,21 +47,28 @@ class Upgrade():
             self.install()
 
     def install(self):
+        log.debug('Upgrade.install')
         if self._update is None:
             self.check_for_update()
             if self._update is None:
                 raise NoAvailableUpdate("No update is available.")
+        log.debug("Upgrade downloading...")
         downloaded = self._update.download()
+        log.debug("Upgrade download complete.")
         if downloaded:
+            self.status, self.totalProgress = ('Complete',100)
             if BUNDLED:
-                Process(target=self._update.extract_restart, name='CLInstall').start()
+                p = Process(target=self._update.extract_restart, name='CLInstall')
             else:
                 log.debug("Running non-bundled. Update will not be installed.")
+                p = Process(target=test_restart, name='CLInstall')
+            p.start()
+            log.debug("install process started: %s" % p.pid)
             self.conn.send({
                 'call_method':{
                     'method':'close',
                     'args':[],
-                    'kwargs':{}
+                    'kwargs':{'excl':[p.pid]}
                 }
             })
 

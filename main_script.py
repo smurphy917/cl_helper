@@ -11,12 +11,22 @@ import time
 from helper_ui.app import HelperUI
 from helper.helper import Helper
 from types import MethodType
+from appdirs import user_log_dir
 
 init_config.init()
+P_EXCL = ['CLInstall']
 
-log = logging.getLogger('main_script')
-log.info("main_script Initialized")
-setproctitle.setproctitle("CLMain")
+def global_init():
+    log = logging.getLogger('main_script')
+    mp_log = multiprocessing.get_logger()
+    #log.info("main_script Initialized")
+    #mp_log = multiprocessing.log_to_stderr()
+    #mp_log.setLevel(logging.DEBUG)
+    #handler = logging.handlers.RotatingFileHandler(filename=os.path.join(user_log_dir("CL Helper","s_murphy"),"debug.log"))
+    #mp_log.addHandler(handler)
+    #multiprocessing.get_logger()
+    setproctitle.setproctitle("CLMain")
+    return log
 
 def RebuildProxyNoReferent(func, token, serializer, kwds):
     #http://stackoverflow.com/questions/29788809/python-how-to-pass-an-autoproxy-object
@@ -51,8 +61,11 @@ class CLManager(BaseManager):
 
 class CLRootMain:
 
-    def __init__(self):        
-        log.debug("CLRootMain.__init__()")
+    def __init__(self):    
+
+        self.log = global_init()
+
+        self.log.debug("CLRootMain.__init__()")
 
         CLManager.register('CLServer',main.CLServer)
         CLManager.register('CLClient',main.CLClient)
@@ -88,8 +101,9 @@ class CLRootMain:
             connection=server_conn)
         self.client = self.manager.CLClient(connection=client_conn)
         
-    def pkill(self,pid=None):
+    def pkill(self,pid=None, excl=P_EXCL):
         #recursively kill the whole damn family
+        #log.debug("Killing process: %s" % pid)
         if pid is None:
             pid = current_process().pid
         try:
@@ -97,11 +111,15 @@ class CLRootMain:
         except psutil.NoSuchProcess:
             return
         for child in p.children():
-            self.pkill(child.pid)
-        try:
-            p.terminate()
-        except psutil.NoSuchProcess:
-            return
+            self.pkill(child.pid, excl)
+        self.log.debug("pkill: %s" % pid)
+        if pid not in excl:
+            try:
+                p.terminate()
+            except psutil.NoSuchProcess:
+                return
+        else:
+            self.log.debug("pkill process excluded: %s, %s " % (p.name(),pid))
     
     '''
     def start_server(connection=None):
@@ -122,14 +140,15 @@ class CLRootMain:
             time.sleep(1)
     '''
 
-    def close(self):
+    def close(self, *args, **kwargs):
         #self.manager.shutdown()
         for c in self.connections:
             c.send('KILL')
-        self.pkill()
+        time.sleep(1)
+        self.pkill(*args, **kwargs)
 
     def run(self):
-        log.debug("main_script.CLRootMain.run()")
+        self.log.debug("main_script.CLRootMain.run()")
         #Process(name='CLServer',target=self.server.run).start()
         #Process(name='CLClient',target=self.client.start).start()
         Process(name='CLServer', target=self.server.run).start()
@@ -139,10 +158,10 @@ class CLRootMain:
             for c in wait(self.connections):
                 try:
                     p = c.recv()
-                except EOFError:
+                except (EOFError, BrokenPipeError):
                     self.connections.remove(c)
                 else:
-                    log.debug(p)
+                    self.log.debug(p)
                     if 'call_method' in p:
                         getattr(self,p['call_method']['method'])(*p['call_method']['args'],**p['call_method']['kwargs'])
 

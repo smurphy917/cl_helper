@@ -1,5 +1,5 @@
-from apiclient import errors
-from apiclient.discovery import build
+from googleapiclient import errors
+from googleapiclient.discovery import build
 import httplib2
 import json
 import sys

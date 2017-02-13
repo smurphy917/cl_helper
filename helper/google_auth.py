@@ -2,7 +2,7 @@ import logging
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 from oauth2client.client import Credentials
-from apiclient.discovery import build
+from googleapiclient.discovery import build
 import httplib2
 import sys, os
 import json
@@ -152,10 +152,14 @@ def get_user_info(credentials):
   Returns:
     User information as a dict.
   """
+  log.debug("creating http...")
+  http = credentials.authorize(httplib2.Http())
+  log.debug("building user info service...")
   user_info_service = build(
       serviceName='oauth2', version='v2',
-      http=credentials.authorize(httplib2.Http()))
+      http=http)
   user_info = None
+  log.debug("getting user info from service...")
   try:
     user_info = user_info_service.userinfo().get().execute()
   except errors.HttpError as e:
@@ -209,6 +213,8 @@ def get_credentials(authorization_code, state):
   email_address = ''
   try:
     credentials = exchange_code(authorization_code)
+    log.debug("credentials retrieved")
+    log.debug("getting user info...")
     user_info = get_user_info(credentials)
     email_address = user_info.get('email')
     user_id = user_info.get('id')

@@ -29,8 +29,10 @@ logDir = user_log_dir('CL Helper','s_murphy') #os.path.join(os.getcwd(),"log")
 dataDir = user_data_dir('CL Helper','s_murphy')
 
 ROOT_DIR = os.path.join(os.path.dirname(__file__),"..")
+BUNDLED = False
 if getattr(sys,'frozen',False):
     ROOT_DIR = sys._MEIPASS
+    BUNDLED = True
 DATA_DIR = dataDir 
 
 if not os.path.exists(DATA_DIR):
@@ -90,6 +92,10 @@ class Helper:
         #print ("Logging in with Google email: %s" % self.google_email)
         if account:
             self.set_google_email(account)
+        if not self.google_email:
+            if hasattr(self,'accounts') and len(self.accounts):
+                self.set_google_email(list(self.accounts[0].values())[0]['google_email'])
+        log.debug("Logging in with Google email: %s" % self.google_email)
         creds = google_auth.get_stored_credentials(self.google_email)
         if creds:
             self.credentials = creds
@@ -135,18 +141,21 @@ class Helper:
                     log.info("First time load of cl_users.json")
         except FileNotFoundError:
             log.info("First time load of cl_users.json")
-        users = cl_users.keys()
+        user_map = {k.lower():k for k in cl_users.keys()}
+        users = user_map.keys()
+        log.debug(users)
         self.accounts = []
         for account in accounts:
-            if account not in users:
+            if account.lower() not in users:
                 raise Exception('account %s is not avalable' % account)
-            self.accounts.append({account: cl_users[account]})
+            self.accounts.append({account: cl_users[user_map[account.lower()]]})
+        print(self.accounts)
         return 'complete'
 
     def open_auth_url(self,url):
         log.debug("openeing new webdriver...")
         try:
-            driver = webdriver.Chrome(CHROMEDRIVER_PATH)
+            driver = webdriver.Chrome(CHROMEDRIVER_PATH, service_log_path=os.path.join(DATA_DIR,'Logs','chr_auth_debug.log'))
             #driver = webdriver.PhantomJS(executable_path=PHANTOMJS_PATH)
         except Exception as e:
             log.debug(tb.format_exc())
@@ -157,14 +166,21 @@ class Helper:
         return
     
     def complete_auth(self,access_code):
+        log.debug("completing auth - access_code: %s" % access_code)
         if self.auth_driver:
-            self.auth_driver.close()
-        creds = google_auth.get_credentials(access_code,"auth")
-        self.credentials = creds
-        user_info = google_auth.get_user_info(creds)
-        email_address = user_info.get('email')
+            self.auth_driver.quit()
+        try:
+            creds = google_auth.get_credentials(access_code,"auth")
+            log.debug("creds saved")
+            self.credentials = creds
+            user_info = google_auth.get_user_info(creds)
+            log.debug("user info retrieved")
+            email_address = user_info.get('email')
+        except:
+            raise
         if self.save_user:
             self.save_current_user()
+            log.debug("user saved")
         return email_address
 
     def set_google_email(self, email):
@@ -183,7 +199,10 @@ class Helper:
         #print("helper.renew running...")
         #driver = webdriver.Chrome(CHROMEDRIVER_PATH, desired_capabilities={'chromeOptions':{'args':['--no-startup-window']}})
         #log.debug("Renew running in " + ("daemonic" if multiprocessing.current_process().daemon else "non-daemonic") + " process")
-        driver = webdriver.PhantomJS(executable_path=PHANTOMJS_PATH)
+        if BUNDLED:
+            driver = webdriver.PhantomJS(executable_path=PHANTOMJS_PATH)
+        else:
+            driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH)
         if len(self.pending_posts):
             for post in self.pending_posts:
                 if post['type']=='email':
@@ -196,9 +215,11 @@ class Helper:
             done_done = False
             if not self.started or (hasattr(self,"next_account") and self.next_account):
                 self.started = True
+
                 next_account = self.accounts.pop(0)
                 self.accounts.append(next_account)
                 user = list(next_account.keys())[0]
+                log.info("Switching to %s." % user)
                 self.set_login((user,next_account[user]['password']))
             driver.get(CL_BASE + "/login/home")
             login = self.get_login()
@@ -352,15 +373,14 @@ class Helper:
                         done = True
                         break
                 if done:
+                    log.info("Renew complete")
                     if done_done:
+                        log.info("No additional posts for %s. Switching accounts on next run." % login[0])
                         self.next_account = True
                     break
         except:
-            #driver.close()
-            log.error("Error: ", sys.exc_info()[0])
-            raise
-        #raise #just need to stop driver from closing
-        driver.close()
+            log.error(tb.format_exc())
+        driver.quit() 
 
     def get_text_auth(self):
         endpoint = self.config['text_auth']['retrieve']['endpoint']
@@ -394,15 +414,15 @@ class Helper:
         maxTries = 12
         while True:
             tries+=1
-            q = "from:robot@craigslist.org" + " after:" + str(int(email_time.timestamp()())) #"{:%Y-%m-%d %H:%M:%S}".format(email_time)
-            msgs = api.list_messages(self.config['google']['email'],q)
+            q = "from:robot@craigslist.org" + " after:" + str(int(email_time)) #"{:%Y-%m-%d %H:%M:%S}".format(email_time)
+            msgs = api.list_messages(self.google_email,q)
             if not len(msgs):
                 time.sleep(5)
                 if tries < maxTries:
                     continue
                 else:
                     return False
-            msg = api.get_message(self.config['google']['email'],msgs[0]['id'])
+            msg = api.get_message(self.google_email,msgs[0]['id'])
             msg_body = str(base64.urlsafe_b64decode(msg['raw'].encode("ASCII")))
             html_st = msg_body.find("<html>")
             html_end = msg_body.find("</html>") + len("</html>")
@@ -413,10 +433,11 @@ class Helper:
             driver.get(link)
             #potential for text auth
 
-            accept = driver.find_element_by_xpath("//section[contains(./@class,'previewButtons')]/form/button[contains(.,'ACCEPT')]")
-            if accept:
-                accept.click()
+            accepts = driver.find_elements_by_xpath("//section[contains(./@class,'previewButtons')]/form/button[contains(.,'ACCEPT')]")
+            if len(accepts):
+                accepts[0].click()
             else:
+                raise
                 #assuming no accept means text auth. Can't get to the screen for a better check.
                 number = self.config['text_auth']['number']
                 driver.find_element_by_name("n").send_keys(number[0])
@@ -509,10 +530,13 @@ class Helper:
                     user_data = {}
         except FileNotFoundError:
             pass
-        login = self.get_login()
+        try:
+            login = self.get_login()
+        except (AttributeError, KeyError):
+            return
         user_data[login[0]] = {
             'password': login[1],
-            'google_email': self.google_email
+            'google_email': self.google_email.lower()
         }
         with open(os.path.join(DATA_DIR,"cl_users.json"), "w+") as file:
             user_data = json.dump(user_data,file)
@@ -580,20 +604,26 @@ class Helper:
             'subject': 'CL Helper Logs - %s - %s' % (osuser,logTime.strftime("%Y/%m/%d %H:%M:%S")),
             'body': "LOG FILES ATTACHED FOR USER: %s, VERSION: " % (user, self.version)
         }
-        files = [
+        try_files = [
             os.path.abspath(os.path.join(logDir,'debug.log')),
             os.path.abspath(os.path.join(logDir,'info.log')),
-            os.path.abspath(os.path.join(logDir,'errors.log'))
+            os.path.abspath(os.path.join(logDir,'errors.log')),
+            os.path.abspath(os.path.join(logDir,'debug.log.1')),
+            os.path.abspath(os.path.join(logDir,'chr_debug.log')),
+            os.path.abspath(os.path.join(logDir,'chr_auth_debug.log'))
             ]
-        if os.path.exists(os.path.join(logDir,'debug.log.1')):
-            files.append(os.path.join(logDir,'debug.log.1'))
+        files = []
+        for path in try_files:
+            if os.path.exists(path):
+                files.append(path)
+                
         api = Goog(self.credentials)
         api.send_message(msg,files=files)
 
-def StartHelper(q,login=None, minutes=6):
-    helper = q.get()
-    if not helper:
-        helper = Helper(login)
+def StartHelper(helper,login=None, minutes=6):
+    #helper = q.get()
+    #if not helper:
+    #    helper = Helper(login)
     helper.renew()
     schedule.every(minutes).minutes.do(helper.renew)
 

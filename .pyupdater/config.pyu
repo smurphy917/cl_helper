@@ -1,90 +1,33 @@
 {
-  "sync_threshold": 3,
-  "filename": "C:\\Users\\PW-SMurphy\\workspace\\cl_helper\\.pyupdater\\config.pyu",
   "config_dir": "C:\\Users\\PW-SMurphy\\workspace\\cl_helper\\.pyupdater",
-  "keypack": {
-    "client": {
-      "offline_public": "id429vz8AKRUWsVka8H1xSfdMLg0zL1VLvyeM7677Ww"
-    },
-    "repo": {
-      "app_private": "3WZcCkYlo3zNmV5GSVL3zX+ivnOcTxGC69ULM35bt5E"
-    },
-    "upload": {
-      "app_public": "5sxuBniBDrNoIBdA1R361nRsimv0xXZM6f380DCgwWE",
-      "signature": "jUc3dZgl4hmE4W4L5Bv3b4lHSf7W8gOZEKk0lscUqVl9pN1inixtWQKeDUrEYNUd2Eat2aaoB0PyDGfLFxb+Cg"
-    }
-  },
   "py_repo_config": {
-    "patches": {
-      "CL Helper": 4
-    },
     "package": {
       "CL Helper": {
-        "win": "0.1.1.2.0",
-        "mac": "0.1.0.0.9"
+        "mac": "0.1.0.0.9",
+        "win": "0.1.1.2.0"
       }
+    },
+    "patches": {
+      "CL Helper": 4
     }
   },
-  "app_config": {
-    "APP_NAME": "CL Helper",
-    "UPDATE_PATCHES": true,
-    "UPDATE_URLS": [
-      "https://cl-helper.s3.amazonaws.com"
-    ],
-    "MAX_DOWNLOAD_RETRIES": 3,
-    "COMPANY_NAME": "s_murphy",
-    "DATA_DIR": "/Users/smurphy917/proj/cl_helper",
-    "PLUGIN_CONFIGS": {
-      "s3-Digital Sapphire": {
-        "bucket_name": "cl-helper"
-      }
-    },
-    "CLIENT_CONFIG_PATH": [
-      "client_config.py"
-    ]
-  },
+  "count": 0,
   "version_meta": {
-    "latest": {
-      "CL Helper": {
-        "alpha": {
-          "mac": "0.1.0.0.19",
-          "win": "0.1.0.0.17"
-        }
-      }
-    },
+    "signature": "HLpvtNP89rsfy640L5pU+ulzRwnSXsTj1rpQQYUKgsal0p6vvwawUhM1aDPT6ggh5b9dERRukHcjW8hLpnMqBw",
     "updates": {
       "CL Helper": {
-        "0.1.0.0.11": {
-          "mac": {
-            "file_hash": "35a3d7e8e368491a9fb838862996dc95b172adf65a20ff18c1c395bbae71d8cc",
-            "file_size": 54198399,
-            "filename": "CL Helper-mac-0.1.0alpha11.tar.gz"
-          }
-        },
-        "0.1.0.0.12": {
-          "mac": {
-            "file_hash": "17daf88df9efccededc98524d5b5244e6326eda96261f41a990bf61963963cd6",
-            "file_size": 54198399,
-            "filename": "CL Helper-mac-0.1.0alpha12.tar.gz"
-          }
-        },
-        "0.1.0.0.13": {
-          "mac": {
-            "file_hash": "bd51c79f3a057f2a0b646b7864b1ed23299b73d1a9ed68e1ecc265749b857e64",
-            "file_size": 54198399,
-            "filename": "CL Helper-mac-0.1.0alpha13.tar.gz"
-          },
+        "0.1.0.0.30": {
           "win": {
-            "file_hash": "9760af88e63dd9bc57a03572081d9dd9ce810902e6eee47578f060b24b7fadd9",
-            "file_size": 61870383,
-            "filename": "CL Helper-win-0.1.0alpha13.zip"
+            "file_hash": "8c1425337f9f43ef59df7dcc0ce0f1cd4eb348bdd1375f7ca4df700ea23af77a",
+            "file_size": 63506004,
+            "filename": "CL Helper-win-0.1.0alpha30.zip"
           }
         },
-        "0.1.0.0.14": {
-          "win": {
-            "file_hash": "2ef4a269ebcc2fd03becf8503e0326b7103fbc0ba14aee21bb6a362cb46fe32e",
-            "file_size": 61869240,
-            "filename": "CL Helper-win-0.1.0alpha14.zip"
+        "0.1.0.0.19": {
+          "mac": {
+            "file_hash": "a151632dc697307165885810f3a5a600488cfb0461b96676963dc68df438bf7f",
+            "file_size": 58919759,
+            "filename": "CL Helper-mac-0.1.0alpha19.tar.gz"
           }
         },
         "0.1.0.0.15": {
@@ -92,13 +35,6 @@
             "file_hash": "93ecdc405db569cd8d88f50b1d084836c2000faa265ecf84d2150b3770ca960f",
             "file_size": 61871129,
             "filename": "CL Helper-win-0.1.0alpha15.zip"
-          }
-        },
-        "0.1.0.0.16": {
-          "win": {
-            "file_hash": "3f669f67327b225c0b2280ab88f540bbcf6281ea73a2890aa8ad456444bdeb94",
-            "file_size": 62076833,
-            "filename": "CL Helper-win-0.1.0alpha16.zip"
           }
         },
         "0.1.0.0.17": {
@@ -113,18 +49,79 @@
             "filename": "CL Helper-win-0.1.0alpha17.zip"
           }
         },
-        "0.1.0.0.18": {
+        "0.1.0.0.12": {
           "mac": {
-            "file_hash": "bc27a564495e9962bf33407bdf6f9a0f9c010973968aa871c768be5c3f49f99f",
-            "file_size": 54352024,
-            "filename": "CL Helper-mac-0.1.0alpha18.tar.gz"
+            "file_hash": "17daf88df9efccededc98524d5b5244e6326eda96261f41a990bf61963963cd6",
+            "file_size": 54198399,
+            "filename": "CL Helper-mac-0.1.0alpha12.tar.gz"
           }
         },
-        "0.1.0.0.19": {
+        "0.1.0.0.25": {
+          "win": {
+            "file_hash": "20431212e172db8cc946a421c84eb6347ffb3ee1155c51d2994add014a680284",
+            "file_size": 63485699,
+            "filename": "CL Helper-win-0.1.0alpha25.zip"
+          }
+        },
+        "0.1.0.0.7": {
+          "win": {
+            "file_hash": "4740099fb28ba9c234b3279bc8de33ed2ad05aa2ed99a8002e1048fa645b67ee",
+            "file_size": 26599223,
+            "filename": "CL Helper-win-0.1.0alpha7.zip"
+          }
+        },
+        "0.1.0.0.16": {
+          "win": {
+            "file_hash": "3f669f67327b225c0b2280ab88f540bbcf6281ea73a2890aa8ad456444bdeb94",
+            "file_size": 62076833,
+            "filename": "CL Helper-win-0.1.0alpha16.zip"
+          }
+        },
+        "0.1.0.0.13": {
           "mac": {
-            "file_hash": "a151632dc697307165885810f3a5a600488cfb0461b96676963dc68df438bf7f",
-            "file_size": 58919759,
-            "filename": "CL Helper-mac-0.1.0alpha19.tar.gz"
+            "file_hash": "bd51c79f3a057f2a0b646b7864b1ed23299b73d1a9ed68e1ecc265749b857e64",
+            "file_size": 54198399,
+            "filename": "CL Helper-mac-0.1.0alpha13.tar.gz"
+          },
+          "win": {
+            "file_hash": "9760af88e63dd9bc57a03572081d9dd9ce810902e6eee47578f060b24b7fadd9",
+            "file_size": 61870383,
+            "filename": "CL Helper-win-0.1.0alpha13.zip"
+          }
+        },
+        "0.1.0.0.8": {
+          "win": {
+            "file_hash": "15847352085904aa1490c9493a48b2153169e33ca9ffe93a464c5a8a0932d270",
+            "file_size": 61796920,
+            "filename": "CL Helper-win-0.1.0alpha8.zip"
+          }
+        },
+        "0.1.0.0.9": {
+          "mac": {
+            "file_hash": "6f620655dff3f840b216ee6da5802e7c0e43927a91a86453d8d2d63013aee311",
+            "file_size": 54198398,
+            "filename": "CL Helper-mac-0.1.0alpha9.tar.gz"
+          }
+        },
+        "0.1.0.0.4": {
+          "win": {
+            "file_hash": "a26daa54fdcf89bcae9b1b818f6405f5ca45d1233f31be93cdefd4ebe287b57b",
+            "file_size": 26543999,
+            "filename": "CL Helper-win-0.1.0alpha4.zip"
+          }
+        },
+        "0.1.0.0.14": {
+          "win": {
+            "file_hash": "2ef4a269ebcc2fd03becf8503e0326b7103fbc0ba14aee21bb6a362cb46fe32e",
+            "file_size": 61869240,
+            "filename": "CL Helper-win-0.1.0alpha14.zip"
+          }
+        },
+        "0.1.0.0.11": {
+          "mac": {
+            "file_hash": "35a3d7e8e368491a9fb838862996dc95b172adf65a20ff18c1c395bbae71d8cc",
+            "file_size": 54198399,
+            "filename": "CL Helper-mac-0.1.0alpha11.tar.gz"
           }
         },
         "0.1.0.0.3": {
@@ -134,11 +131,11 @@
             "filename": "CL Helper-win-0.1.0alpha3.zip"
           }
         },
-        "0.1.0.0.4": {
+        "0.1.0.0.29": {
           "win": {
-            "file_hash": "a26daa54fdcf89bcae9b1b818f6405f5ca45d1233f31be93cdefd4ebe287b57b",
-            "file_size": 26543999,
-            "filename": "CL Helper-win-0.1.0alpha4.zip"
+            "file_hash": "a49f7693c69a189bf0600ba570480183e591c54fda35da567589975a33ff972c",
+            "file_size": 63487353,
+            "filename": "CL Helper-win-0.1.0alpha29.zip"
           }
         },
         "0.1.0.0.5": {
@@ -155,30 +152,89 @@
             "filename": "CL Helper-win-0.1.0alpha6.zip"
           }
         },
-        "0.1.0.0.7": {
+        "0.1.0.0.31": {
           "win": {
-            "file_hash": "4740099fb28ba9c234b3279bc8de33ed2ad05aa2ed99a8002e1048fa645b67ee",
-            "file_size": 26599223,
-            "filename": "CL Helper-win-0.1.0alpha7.zip"
+            "file_hash": "bdb2d33ec5a121ce08433f35942d802dc7ddc20e81aa385c2818682412d4a9a1",
+            "file_size": 63508819,
+            "filename": "CL Helper-win-0.1.0alpha31.zip"
           }
         },
-        "0.1.0.0.8": {
+        "0.1.0.0.24": {
           "win": {
-            "file_hash": "15847352085904aa1490c9493a48b2153169e33ca9ffe93a464c5a8a0932d270",
-            "file_size": 61796920,
-            "filename": "CL Helper-win-0.1.0alpha8.zip"
+            "file_hash": "b181932e287a753ca9a6a5bb24348de81bd5e89b18784afd6da7cb8f72377b45",
+            "file_size": 63487595,
+            "filename": "CL Helper-win-0.1.0alpha24.zip"
           }
         },
-        "0.1.0.0.9": {
+        "0.1.0.0.26": {
+          "win": {
+            "file_hash": "3dd1e989f709560f6e4780c462b9a9fb91f4aaebf9fa860e651fc96235f8049b",
+            "file_size": 63482840,
+            "filename": "CL Helper-win-0.1.0alpha26.zip"
+          }
+        },
+        "0.1.0.0.18": {
           "mac": {
-            "file_hash": "6f620655dff3f840b216ee6da5802e7c0e43927a91a86453d8d2d63013aee311",
-            "file_size": 54198398,
-            "filename": "CL Helper-mac-0.1.0alpha9.tar.gz"
+            "file_hash": "bc27a564495e9962bf33407bdf6f9a0f9c010973968aa871c768be5c3f49f99f",
+            "file_size": 54352024,
+            "filename": "CL Helper-mac-0.1.0alpha18.tar.gz"
+          }
+        },
+        "0.1.0.0.28": {
+          "win": {
+            "file_hash": "292b5e45b5201a4d93ffd98a4deaf0acc4e56a61f502c47234b0992c77ed3d5c",
+            "file_size": 63485442,
+            "filename": "CL Helper-win-0.1.0alpha28.zip"
+          }
+        },
+        "0.1.0.0.27": {
+          "win": {
+            "file_hash": "abb2980a894efb50861dec382c1343694ff30244db1357c9d6ac4a1f82e799d5",
+            "file_size": 63485118,
+            "filename": "CL Helper-win-0.1.0alpha27.zip"
           }
         }
       }
     },
-    "signature": "rGM27Es1s6F0ZQX5K9ZiBD4rBszaAowJi3Xl5/USszVXJMDUZys+imPvfFnEpvvGM8V+dawDBZOZl/j3DrgtAQ"
+    "latest": {
+      "CL Helper": {
+        "alpha": {
+          "mac": "0.1.0.0.19",
+          "win": "0.1.0.0.31"
+        }
+      }
+    }
   },
-  "count": 0
+  "filename": "C:\\Users\\PW-SMurphy\\workspace\\cl_helper\\.pyupdater\\config.pyu",
+  "sync_threshold": 3,
+  "app_config": {
+    "UPDATE_URLS": [
+      "https://cl-helper.s3.amazonaws.com"
+    ],
+    "DATA_DIR": "/Users/smurphy917/proj/cl_helper",
+    "COMPANY_NAME": "s_murphy",
+    "UPDATE_PATCHES": true,
+    "CLIENT_CONFIG_PATH": [
+      "client_config.py"
+    ],
+    "MAX_DOWNLOAD_RETRIES": 3,
+    "PLUGIN_CONFIGS": {
+      "s3-Digital Sapphire": {
+        "bucket_name": "cl-helper"
+      }
+    },
+    "APP_NAME": "CL Helper"
+  },
+  "keypack": {
+    "upload": {
+      "app_public": "5sxuBniBDrNoIBdA1R361nRsimv0xXZM6f380DCgwWE",
+      "signature": "jUc3dZgl4hmE4W4L5Bv3b4lHSf7W8gOZEKk0lscUqVl9pN1inixtWQKeDUrEYNUd2Eat2aaoB0PyDGfLFxb+Cg"
+    },
+    "client": {
+      "offline_public": "id429vz8AKRUWsVka8H1xSfdMLg0zL1VLvyeM7677Ww"
+    },
+    "repo": {
+      "app_private": "3WZcCkYlo3zNmV5GSVL3zX+ivnOcTxGC69ULM35bt5E"
+    }
+  }
 }
