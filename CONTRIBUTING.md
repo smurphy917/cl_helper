@@ -1,4 +1,5 @@
-# CL Helper Issues
+# CL Helper
+## Creating Issues
 1. Go to https://github.com/smurphy917/cl_helper/issues
 2. Login in, or create an account if necessary
 3. Click 'New Issue'
