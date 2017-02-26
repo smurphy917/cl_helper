@@ -5,6 +5,7 @@
 3. Click 'New Issue'
 4. Provide a relevant title
 5. In the body of the issue, please provide the following:
+    1. __Version of the program that you are running - this is *very* important__
     1. Context of the issue--was the program running already, if so how long? were you running multiple accounts or just one? etc.
     2. Exact steps that you had just taken before seeing the issue--did you click a specific button? Were you adding a new user, and what exactly did you click on and enter?
     3. Detailed description of the issue--include any errors that you see or any other details you can provide. Phrases such as "It didn't work" or "It stopped" are not helpful as they provide no description of what actually happened. 
