@@ -66,7 +66,8 @@ class Helper:
         self.google_email = ""
         self.paused = False
         self.started = False
-        self.version = version
+        log.debug("Version set: %s" % version)
+        self.app_version = version
 
         #try:
         #    with open(self.data_path) as file:
@@ -92,11 +93,12 @@ class Helper:
         #print ("Logging in with Google email: %s" % self.google_email)
         if account:
             self.set_google_email(account)
-        if not self.google_email:
+        elif not self.google_email:
             if hasattr(self,'accounts') and len(self.accounts):
                 self.set_google_email(list(self.accounts[0].values())[0]['google_email'])
         log.debug("Logging in with Google email: %s" % self.google_email)
         creds = google_auth.get_stored_credentials(self.google_email)
+        log.debug(creds)
         if creds:
             self.credentials = creds
             if save_user:
@@ -127,8 +129,15 @@ class Helper:
         #self.credentials = creds
         #return
 
+    def get_version(self):
+        return self.app_version
+
     def get_current_user(self):
-        return self.get_login()[0]
+        log.debug("get_current_user")
+        try:
+            return self.get_login()[0]
+        except (IndexError, TypeError):
+            return None
 
     def set_accounts(self,accounts):
         cl_users = {}
@@ -184,7 +193,7 @@ class Helper:
         return email_address
 
     def set_google_email(self, email):
-        #print("Google email set: %s" % email)
+        log.debug("Google email set: %s" % email)
         self.google_email = email
 
     def pause(self):
@@ -380,7 +389,8 @@ class Helper:
                     break
         except:
             log.error(tb.format_exc())
-        driver.quit() 
+        finally:
+            driver.quit() 
 
     def get_text_auth(self):
         endpoint = self.config['text_auth']['retrieve']['endpoint']
@@ -404,7 +414,10 @@ class Helper:
         })
 
     def get_login(self):
-        return (self.config['craigslist']['credentials']['user'], self.config['craigslist']['credentials']['pw'])
+        try:
+            return (self.config['craigslist']['credentials']['user'], self.config['craigslist']['credentials']['pw'])
+        except KeyError:
+            return None
 
     def verify_via_email(self,driver,email_address,email_time):
         if self.credentials is None:
@@ -589,9 +602,13 @@ class Helper:
         log.info("submitting logs...")
         logTime = datetime.datetime.now()
         if self.credentials is None:
-            self.google_login(account='cl.helper01@gmail.com',save_user=False)
+            log.debug("helper.submit_logs: no credentials availabled. Logging in as default user.")
+            complete = self.google_login(account='cl.helper01@gmail.com',save_user=False)
+            log.debug("login complete: %s" % str(complete))
         try:
             user = self.get_current_user()
+            if user is None:
+                user = "None"
         except KeyError:
             user = "None"
         try:
@@ -601,9 +618,10 @@ class Helper:
         msg = {
             'from': self.google_email,
             'to': 'smurphy917@gmail.com',
-            'subject': 'CL Helper Logs - %s - %s' % (osuser,logTime.strftime("%Y/%m/%d %H:%M:%S")),
-            'body': "LOG FILES ATTACHED FOR USER: %s, VERSION: " % (user, self.version)
+            'subject': 'CL Helper Logs - {0} - {1}'.format(osuser,logTime.strftime("%Y/%m/%d %H:%M:%S")),
+            'body': "LOG FILES ATTACHED FOR USER: {0}, VERSION: {1}".format(user, self.get_version())
         }
+        
         try_files = [
             os.path.abspath(os.path.join(logDir,'debug.log')),
             os.path.abspath(os.path.join(logDir,'info.log')),
@@ -616,8 +634,9 @@ class Helper:
         for path in try_files:
             if os.path.exists(path):
                 files.append(path)
-                
+        log.debug("Initializing API...")
         api = Goog(self.credentials)
+        log.debug("Sending message...")
         api.send_message(msg,files=files)
 
 def StartHelper(helper,login=None, minutes=6):

@@ -36,7 +36,7 @@ SCOPES = [
     # Add other requested scopes.
 ]
 
-log = logging.getLogger("cl_helper")
+log = logging.getLogger(__name__)
 
 class GetCredentialsException(Exception):
   """Error raised when an error occurred while retrieving credentials.
@@ -75,12 +75,15 @@ def get_stored_credentials(user_id):
   """
   log.debug("retrieving user credentials for: " + user_id)
   try:
+    user_data = {}
     with open(os.path.join(DATA_DIR, 'user_data.json'), 'r') as file:
-        user_data = json.load(file)
-        if user_id in user_data:
-          return Credentials.new_from_json(json.dumps(user_data[user_id]['stored_credentials']))
-        else:
-          return None
+      user_data = json.load(file)
+    if user_id in user_data:
+      log.debug("Buliding credentials from stored data.")
+      log.debug("data: %s" % json.dumps(user_data[user_id]['stored_credentials']))
+      return Credentials.new_from_json(json.dumps(user_data[user_id]['stored_credentials']))
+    else:
+      return None
   except (FileNotFoundError, json.decoder.JSONDecodeError):
     return None
   # TODO: Implement this function to work with your database.

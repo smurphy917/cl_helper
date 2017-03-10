@@ -1,1 +1,1 @@
-powershell -Command "& {kill -processname 'CL Helper'}"
+powershell -Command "& {kill -processname 'CL Helper','PhantomJS'}"

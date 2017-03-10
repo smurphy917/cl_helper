@@ -89,7 +89,8 @@ class CLRootMain:
         self.manager.start()
 
         self.upgrade = self.manager.Upgrade(connection=upgrade_conn)
-        self.helper = self.manager.Helper()
+        self.helper = self.manager.Helper(version=upgrade.APP_VERSION)
+        self.log.debug("HELPER VERSION: %s" % self.helper.get_version())
         self.app = self.manager.HelperUI(
             version=upgrade.APP_VERSION,
             helper=self.helper,
